@@ -2,9 +2,11 @@
 
 [![CI](https://github.com/kineticsystem/opencode-4090/actions/workflows/ci.yml/badge.svg)](https://github.com/kineticsystem/opencode-4090/actions/workflows/ci.yml)
 
-Run Qwen3.8-27B for [opencode](https://opencode.ai) on one **NVIDIA GeForce RTX 4090**, 2.5 times faster than llama.cpp and with up to the model's full 256K context, vision included.
+A study of how fast, and how precisely, a Qwen model runs on one **NVIDIA GeForce RTX 4090**. We took Qwen3.8-27B, in the quantized versions that each engine reads, and measured four inference engines against llama.cpp: decode speed, accuracy, the largest context that fits in 24 GB, with and without vision, and what a smaller KV cache costs in precision.
 
-One Docker container holds four inference engines and [llama-swap](https://github.com/mostlygeek/llama-swap) in front of them. opencode talks to llama-swap; picking a model in opencode starts the engine that serves it.
+The best engine, azllm, is 2.5 times faster than llama.cpp, as precise, and fits the model's full 256K context with vision. The full results are in the [research report](doc/research/REPORT.md) and the [paper](doc/research/Serving-Qwen3.8-27B-on-a-single-RTX-4090.pdf).
+
+The repository also packages every configuration we measured, ready to use: one Docker container with the four engines and [llama-swap](https://github.com/mostlygeek/llama-swap) in front of them, on one OpenAI-compatible endpoint. A client picks a model by name, and llama-swap starts the engine that serves it. Any OpenAI-compatible client works; we used the coding agent [opencode](https://opencode.ai), and provide a script that configures it.
 
 > [!IMPORTANT]
 > This project is built and tuned for the RTX 4090 (24 GB, `sm_89`) only. The engines are compiled for that GPU, and the context sizes fill its memory exactly.
@@ -14,7 +16,8 @@ One Docker container holds four inference engines and [llama-swap](https://githu
 - [The Results](#the-results)
 - [Prerequisites](#prerequisites)
 - [Install](#install)
-- [Use It from opencode](#use-it-from-opencode)
+- [Use It](#use-it)
+  - [opencode](#opencode)
 - [The Commands](#the-commands)
 - [Change a Model](#change-a-model)
 - [Troubleshooting](#troubleshooting)
@@ -22,9 +25,9 @@ One Docker container holds four inference engines and [llama-swap](https://githu
 
 ## The Results
 
-Decode speed on six short prompts, with the recommended sampling and thinking off, and accuracy with greedy decoding:
+Decode speed on six short prompts, with the recommended sampling and thinking off, and accuracy with greedy decoding. The first column is the name a client asks for:
 
-| Model in opencode | Engine | Context | Vision | Speed | GSM8K | HumanEval |
+| Model | Engine | Context | Vision | Speed | GSM8K | HumanEval |
 |---|---|---:|:---:|---:|---:|---:|
 | `baseline` | llama.cpp (TurboQuant fork) | 128K | yes | 89.6 tok/s | 97.2% | 96.3% |
 | `openjet` | OpenJet | 128K | no | 135.9 tok/s | 95.6% | 96.3% |
@@ -34,9 +37,9 @@ Decode speed on six short prompts, with the recommended sampling and thinking of
 | **`azllm`** | azllm | 242K | yes | **228.6 tok/s** | 95.2% | 95.7% |
 | **`azllm-256k`** | azllm | **256K** | yes | **228.8 tok/s** | 96.8% | 95.7% |
 
-**`azllm` is the recommended model for coding.** It is 2.5 times faster than the baseline, about 300 tok/s on code, and as precise: its weights predict code within 0.5% of the baseline's, and the accuracy differences are within the noise of the tests.
+**azllm is the best of the engines we tested.** It is 2.5 times faster than the baseline, about 300 tok/s on code, and as precise: its weights predict code within 0.5% of the baseline's, and the accuracy differences are within the noise of the tests.
 
-The full measurements, how they were made and how to reproduce them are in the research report, [doc/research/REPORT.md](doc/research/REPORT.md), and the paper, [Serving Qwen3.8-27B on a Single RTX 4090](doc/research/Serving-Qwen3.8-27B-on-a-single-RTX-4090.pdf).
+How the measurements were made, and how to reproduce them, is in the [research report](doc/research/REPORT.md).
 
 ## Prerequisites
 
@@ -68,7 +71,7 @@ Download the models into `models/`, about 54 GB:
 
 To keep the models elsewhere, set `MODELS_DIR` to that folder for every `dock.sh` command, e.g. `MODELS_DIR=/data/models ./docker/dock.sh models`.
 
-## Use It from opencode
+## Use It
 
 Start the container; llama-swap listens on `http://127.0.0.1:8085/v1`:
 
@@ -76,15 +79,24 @@ Start the container; llama-swap listens on `http://127.0.0.1:8085/v1`:
 ./docker/dock.sh start
 ```
 
-Add the models to opencode, with azllm as the default:
+Any OpenAI-compatible client can use it: the model is the name in the first column of [the results](#the-results). For example:
+
+```
+curl http://127.0.0.1:8085/v1/chat/completions -H 'Content-Type: application/json' \
+  -d '{"model": "azllm", "messages": [{"role": "user", "content": "Hello"}]}'
+```
+
+The first request to a model waits for its engine to load, one to two minutes. Only one model fits on the GPU at a time: asking for another one stops the current engine. A model is unloaded after 30 idle minutes.
+
+### opencode
+
+Add the models to [opencode](https://opencode.ai), with azllm as the default:
 
 ```
 ./opencode-config.sh --default azllm
 ```
 
-The script reads the list of models, with their context sizes, from llama-swap, and writes the provider `opencode-4090` into `~/.config/opencode/opencode.json`, after a backup. In opencode, choose a model with `/models`.
-
-The first request to a model waits for its engine to load, one to two minutes; opencode shows the progress. Only one model fits on the GPU at a time: picking another one stops the current engine. A model is unloaded after 30 idle minutes.
+The script reads the list of models, with their context sizes, from llama-swap, and writes the provider `opencode-4090` into `~/.config/opencode/opencode.json`, after a backup. In opencode, choose a model with `/models`; opencode shows the progress while an engine loads.
 
 ## The Commands
 
