@@ -58,7 +58,7 @@ for engine in "${engines[@]}"; do
       (cd $E/llama-swap/ui && npm ci --no-audit --no-fund && npm run build)
       mkdir -p $B/llama-swap
       (cd $E/llama-swap && go build -tags embed_ui \
-        -ldflags="-X main.commit=$(git rev-parse --short HEAD) -X main.version=opencode-4090" \
+        -ldflags="-X main.commit=$(git rev-parse --short HEAD) -X main.version=qwen-4090-bench" \
         -o $B/llama-swap/llama-swap .) ;;
     *) echo "unknown engine: $engine" >&2; exit 1 ;;
   esac

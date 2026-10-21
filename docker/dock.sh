@@ -1,13 +1,13 @@
 #! /bin/bash -e
 
-# Use this script to download, build, start, stop and remove opencode-4090: llama-swap in
-# front of four inference engines for Qwen3.8-27B, all in one container, opencode-4090.
+# Use this script to download, build, start, stop and remove qwen-4090-bench: llama-swap in
+# front of four inference engines for Qwen3.8-27B, all in one container, qwen-4090-bench.
 #
 # The container is defined in docker-compose.yml. This script only adds what compose
 # cannot express: the submodules, the host uid/gid, compiling the engines inside the
 # container, and downloading the models.
 
-SERVICE=opencode-4090
+SERVICE=qwen-4090-bench
 
 # The engines, in ../engines, that the container builds and runs.
 ENGINES=(llama.cpp llama-cpp-turboquant open-jet ninfer-4090 azllm llama-swap)

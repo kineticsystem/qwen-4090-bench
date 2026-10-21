@@ -1,7 +1,7 @@
 # Faster Qwen3.8-27B on the RTX 4090
 
 > [!NOTE]
-> This is the report of the research behind opencode-4090, kept as a reference with everything needed to reproduce it: the paper ([`Serving-Qwen3.8-27B-on-a-single-RTX-4090.pdf`](Serving-Qwen3.8-27B-on-a-single-RTX-4090.pdf), sources in [`paper/`](paper/)), the measurements ([`results/`](results/)) and the scripts that made them ([`bench/`](bench/) and the `qwen-*.sh` servers). Those scripts ran each engine in a container of its own, from a folder that also held the engines' sources (`src/`) and the models (`models/`), which are not copied here. For running the servers, use the packaged project at the root of this repository: see its [README](../../README.md).
+> This is the report of the research behind qwen-4090-bench, kept as a reference with everything needed to reproduce it: the paper ([`Serving-Qwen3.8-27B-on-a-single-RTX-4090.pdf`](Serving-Qwen3.8-27B-on-a-single-RTX-4090.pdf), sources in [`paper/`](paper/)), the measurements ([`results/`](results/)) and the scripts that made them ([`bench/`](bench/) and the `qwen-*.sh` servers). Those scripts ran each engine in a container of its own, from a folder that also held the engines' sources (`src/`) and the models (`models/`), which are not copied here. For running the servers, use the packaged project at the root of this repository: see its [README](../../README.md).
 
 ## Table of Contents <!-- omit in toc -->
 

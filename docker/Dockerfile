@@ -1,4 +1,4 @@
-# The opencode-4090 container: every engine, llama-swap and the server scripts, for one
+# The qwen-4090-bench container: every engine, llama-swap and the server scripts, for one
 # NVIDIA GeForce RTX 4090 (sm_89). Ubuntu 24.04 with user "developer".
 #
 # CUDA 13.0 matches the CUDA version of the 580 driver series exactly: newer CUDA
@@ -8,7 +8,7 @@
 # what is built stays on the host and survives a rebuilt image.
 FROM nvidia/cuda:13.0.2-devel-ubuntu24.04
 
-LABEL name="opencode-4090"
+LABEL name="qwen-4090-bench"
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \

@@ -1,22 +1,22 @@
-# The opencode-4090 container: llama-swap on port 8085, in front of the Qwen3.8-27B
+# The qwen-4090-bench container: llama-swap on port 8085, in front of the Qwen3.8-27B
 # servers of scripts/serve. Driven by ./dock.sh, which supplies USER_UID/USER_GID.
 #
 # The repository is mounted at /home/developer/ws: the engines (Git submodules) are built
 # there and the scripts run from there, so editing a script needs no rebuild. The models
 # live in ../models, or in the folder MODELS_DIR names, mounted at /models.
 
-name: opencode-4090
+name: qwen-4090-bench
 
 services:
-  opencode-4090:
+  qwen-4090-bench:
     build:
       context: .
       args:
         USER_UID: ${USER_UID:-1000}
         USER_GID: ${USER_GID:-1000}
-    image: opencode-4090:latest
-    container_name: opencode-4090
-    hostname: opencode-4090
+    image: qwen-4090-bench:latest
+    container_name: qwen-4090-bench
+    hostname: qwen-4090-bench
     init: true
     # llama-swap starts with the computer once dock.sh start has been run. It loads no
     # model until a request asks for one, and unloads a model after 30 idle minutes.

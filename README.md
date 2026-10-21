@@ -1,6 +1,6 @@
-# opencode-4090
+# qwen-4090-bench
 
-[![CI](https://github.com/kineticsystem/opencode-4090/actions/workflows/ci.yml/badge.svg)](https://github.com/kineticsystem/opencode-4090/actions/workflows/ci.yml)
+[![CI](https://github.com/kineticsystem/qwen-4090-bench/actions/workflows/ci.yml/badge.svg)](https://github.com/kineticsystem/qwen-4090-bench/actions/workflows/ci.yml)
 
 A study of how fast, and how precisely, a Qwen model runs on one **NVIDIA GeForce RTX 4090**. We took Qwen3.8-27B, in the quantized versions that each engine reads, and measured four inference engines against llama.cpp: decode speed, accuracy, the largest context that fits in 24 GB, with and without vision, and what a smaller KV cache costs in precision.
 
@@ -53,8 +53,8 @@ How the measurements were made, and how to reproduce them, is in the [research r
 Clone the repository with the engines, which are Git submodules:
 
 ```
-git clone --recursive https://github.com/kineticsystem/opencode-4090.git
-cd opencode-4090
+git clone --recursive https://github.com/kineticsystem/qwen-4090-bench.git
+cd qwen-4090-bench
 ```
 
 Build the image and compile the engines, about 30 minutes:
@@ -96,7 +96,7 @@ Add the models to [opencode](https://opencode.ai), with azllm as the default:
 ./opencode-config.sh --default azllm
 ```
 
-The script reads the list of models, with their context sizes, from llama-swap, and writes the provider `opencode-4090` into `~/.config/opencode/opencode.json`, after a backup. In opencode, choose a model with `/models`; opencode shows the progress while an engine loads.
+The script reads the list of models, with their context sizes, from llama-swap, and writes the provider `qwen-4090-bench` into `~/.config/opencode/opencode.json`, after a backup. In opencode, choose a model with `/models`; opencode shows the progress while an engine loads.
 
 ## The Commands
 
@@ -118,7 +118,7 @@ The models are defined in [`scripts/llama-swap.yaml`](scripts/llama-swap.yaml). 
 
 ## Troubleshooting
 
-**opencode shows no `opencode-4090` models.** The container was not running when `./opencode-config.sh` ran: start it and run the script again.
+**opencode shows no `qwen-4090-bench` models.** The container was not running when `./opencode-config.sh` ran: start it and run the script again.
 
 **`./docker/dock.sh start` ends with `llama-swap is not built` or `no models in /models`** in the logs. Run `./docker/dock.sh build` or `./docker/dock.sh models` first.
 
