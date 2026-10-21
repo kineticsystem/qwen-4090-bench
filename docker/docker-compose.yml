@@ -1,0 +1,36 @@
+# The opencode-4090 container: llama-swap on port 8085, in front of the Qwen3.8-27B
+# servers of scripts/serve. Driven by ./dock.sh, which supplies USER_UID/USER_GID.
+#
+# The repository is mounted at /home/developer/ws: the engines (Git submodules) are built
+# there and the scripts run from there, so editing a script needs no rebuild. The models
+# live in ../models, or in the folder MODELS_DIR names, mounted at /models.
+
+name: opencode-4090
+
+services:
+  opencode-4090:
+    build:
+      context: .
+      args:
+        USER_UID: ${USER_UID:-1000}
+        USER_GID: ${USER_GID:-1000}
+    image: opencode-4090:latest
+    container_name: opencode-4090
+    hostname: opencode-4090
+    init: true
+    # llama-swap starts with the computer once dock.sh start has been run. It loads no
+    # model until a request asks for one, and unloads a model after 30 idle minutes.
+    restart: unless-stopped
+    # One RTX 4090.
+    gpus: all
+    # Only llama-swap is published, on the host's loopback: the model servers listen on
+    # the container's own ports.
+    ports:
+      - "127.0.0.1:${PORT:-8085}:8085"
+    volumes:
+      - ..:/home/developer/ws
+      - ${MODELS_DIR:-../models}:/models
+    # No core dumps: a server killed while it loads would write gigabytes into the
+    # mounted repository.
+    ulimits:
+      core: 0

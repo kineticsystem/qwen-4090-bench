@@ -1,0 +1,32 @@
+[INFO] GPU monitoring not available: no GPU monitoring tool available
+[INFO] llama-swap listening on http://127.0.0.1:8085
+[INFO] Request 127.0.0.1 "GET /v1/models HTTP/1.1" 200 858 "curl/8.5.0" 44.019µs
+[INFO] Request 127.0.0.1 "GET /v1/models HTTP/1.1" 200 858 "curl/8.5.0" 39.319µs
+[INFO] <azllm> Health check passed on http://localhost:5800/health
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 568 "curl/8.5.0" 45.460974194s
+[INFO] <ninfer-fast> Health check passed on http://localhost:5803/health
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 920 "curl/8.5.0" 16.534990457s
+[INFO] Request 127.0.0.1 "GET /running HTTP/1.1" 200 220 "curl/8.5.0" 60.583µs
+[INFO] <azllm> Health check passed on http://localhost:5800/health
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 5016 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 1m7.676473993s
+[INFO] <ninfer-long> Health check passed on http://localhost:5804/health
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 4003 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 1m38.064766155s
+[INFO] Request 127.0.0.1 "GET /running HTTP/1.1" 200 220 "curl/8.5.0" 44.697µs
+[INFO] <azllm> Health check passed on http://localhost:5800/health
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 48336 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 54.318042978s
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 15928 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 1m9.41936725s
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 45813 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 4.176491387s
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 12946 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 2.559223047s
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 20322 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 1.703140227s
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 25196 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 2.611307181s
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 114783 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 5.192479653s
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 22711 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 1.492590909s
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 15763 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 15.937001927s
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 9446 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 2.430837611s
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 127190 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 7.823221086s
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 22711 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 1.51557502s
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 18630 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 16.960416896s
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 10690 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 3.034173094s
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 9672 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 2.487082885s
+[INFO] Request 127.0.0.1 "POST /v1/chat/completions HTTP/1.1" 200 110317 "opencode/1.18.31 ai-sdk/provider-utils/4.0.23 runtime/bun/1.3.14" 5.277615695s
+[INFO] <azllm> process exited but not StateStopping, current state: ready

@@ -1,0 +1,28 @@
+qwen-ninfer ready on http://localhost:8084/v1
+== prof-ninfer-long: mean 139.0 tok/s, median 148.4 tok/s
+== prof-ninfer-long: mean 131.0 tok/s, median 138.4 tok/s (thinking)
+== prof-ninfer-long-long: mean 121.8 tok/s, median 120.2 tok/s (29K prompt)
+prof-ninfer-long: GSM8K 96.0% (250)
+prof-ninfer-long: HumanEval 96.3% (164)  [941s]
+prof-ninfer-long vision: This image displays a user interface for configuring a "Logitech Logitech Dual Action" game controller, showing its current axis values (all at 0) and
+qwen-ninfer ready on http://localhost:8084/v1
+== prof-ninfer-precise: mean 137.4 tok/s, median 147.1 tok/s
+== prof-ninfer-precise: mean 129.7 tok/s, median 137.9 tok/s (thinking)
+== prof-ninfer-precise-long: mean 122.2 tok/s, median 117.9 tok/s (29K prompt)
+prof-ninfer-precise: GSM8K 97.6% (250)
+prof-ninfer-precise: HumanEval 95.1% (164)  [938s]
+prof-ninfer-precise vision: This image displays a user interface for configuring a "Logitech Logitech Dual Action" game controller (device `/dev/input/js0`), showing its current 
+qwen-ninfer ready on http://localhost:8084/v1
+== prof-ninfer-fast: mean 166.0 tok/s, median 178.1 tok/s
+== prof-ninfer-fast: mean 153.3 tok/s, median 165.6 tok/s (thinking)
+== prof-ninfer-fast-long: mean 132.8 tok/s, median 122.3 tok/s (29K prompt)
+prof-ninfer-fast: GSM8K 97.2% (250)
+prof-ninfer-fast: HumanEval 95.7% (164)  [712s]
+prof-ninfer-fast vision: This image displays a user interface for configuring a "Logitech Logitech Dual Action" game controller, showing its current axis values (all at 0) and
+qwen-openjet ready on http://localhost:8084/v1
+== prof-openjet: mean 135.9 tok/s, median 137.1 tok/s
+== prof-openjet: mean 130.2 tok/s, median 139.1 tok/s (thinking)
+== prof-openjet-long: mean 110.7 tok/s, median 106.4 tok/s (29K prompt)
+prof-openjet: GSM8K 95.6% (250)
+prof-openjet: HumanEval 96.3% (164)  [908s]
+prof-openjet vision: HTTP 400 {"error": {"message": "unsupported content part type 'image_url' (text only)", "type": "invalid_request_error"}}

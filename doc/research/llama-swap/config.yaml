@@ -1,0 +1,63 @@
+# llama-swap configuration for the Qwen3.8-27B servers of this folder.
+# Started by ../qwen-swap.sh on http://127.0.0.1:8085/v1. A request for one of the models
+# below stops the server that is running and starts that one, through its launcher in
+# the foreground (`run`), on a port llama-swap picks.
+
+# The servers need 1 to 2 minutes to load, and up to a minute more for the previous
+# server's port to be released.
+healthCheckTimeout: 400
+logLevel: info
+startPort: 5800
+
+macros:
+  dir: /home/robot/repo/qwen-research
+
+models:
+  azllm:
+    name: "azllm, 242K, vision (fastest)"
+    cmd: ${dir}/qwen-azllm.sh run --port ${PORT}
+    cmdStop: docker stop -t 20 qwen-azllm
+    useModelName: Qwen3.8-27B
+    unloadTimeout: 30
+
+  azllm-256k:
+    name: "azllm, 256K, vision, 4-bit KV"
+    cmd: ${dir}/qwen-azllm.sh run --kv q4/q4 --ctx 262144 --port ${PORT}
+    cmdStop: docker stop -t 20 qwen-azllm
+    useModelName: Qwen3.8-27B
+    unloadTimeout: 30
+
+  ninfer-long:
+    name: "NInfer long, 256K, vision"
+    cmd: ${dir}/qwen-ninfer.sh run long --port ${PORT}
+    cmdStop: docker stop -t 20 qwen-ninfer
+    useModelName: Qwen3.8-27B
+    unloadTimeout: 30
+
+  ninfer-precise:
+    name: "NInfer precise, 200K, vision"
+    cmd: ${dir}/qwen-ninfer.sh run precise --port ${PORT}
+    cmdStop: docker stop -t 20 qwen-ninfer
+    useModelName: Qwen3.8-27B
+    unloadTimeout: 30
+
+  ninfer-fast:
+    name: "NInfer fast, 192K, vision"
+    cmd: ${dir}/qwen-ninfer.sh run fast --port ${PORT}
+    cmdStop: docker stop -t 20 qwen-ninfer
+    useModelName: Qwen3.8-27B
+    unloadTimeout: 30
+
+  openjet:
+    name: "OpenJet, 128K, text only"
+    cmd: ${dir}/qwen-openjet.sh run --port ${PORT}
+    cmdStop: docker stop -t 20 qwen-openjet
+    useModelName: Qwen3.8-27B
+    unloadTimeout: 30
+
+  baseline:
+    name: "Baseline llama.cpp, 128K, vision"
+    cmd: ${dir}/qwen-baseline.sh run --port ${PORT}
+    cmdStop: docker stop -t 20 qwen-baseline
+    useModelName: Qwen3.8-27B
+    unloadTimeout: 30

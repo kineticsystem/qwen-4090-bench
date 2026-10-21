@@ -1,0 +1,58 @@
+\section{Systems Under Test}
+\label{sec:systems}
+
+Figure~\ref{fig:systems} shows the four engines side by side. All four serve an
+OpenAI-compatible HTTP API, run one request at a time, and verify drafts exactly.
+
+\begin{figure*}[t]
+  \centering
+  \input{figures/systems}
+  \caption{The four engines. Grey: the weights each one reads; blue: the drafter and the
+           serving layer. OpenJet reads the baseline's own GGUF file; NInfer and azllm need their
+           own weight files, both of which come with a DFlash2 drafter.}
+  \label{fig:systems}
+\end{figure*}
+
+\paragraph{Baseline: llama.cpp with TurboQuant.}
+The starting point is the TurboQuant fork of llama.cpp \citep{turboquant}, built from commit
+\texttt{a3d5603d1} for \texttt{sm\_89}, serving Unsloth's \texttt{UD-Q4\_K\_XL} GGUF
+ with flash attention, MTP speculation with two drafts, keys in
+\texttt{q8\_0}, values in \texttt{turbo4} and a 128{,}000-token context. The vision projector
+stays in host memory.
+
+\paragraph{OpenJet Engine.}
+OpenJet \citep{openjet} runs a whole speculative cycle (verification of $1+k$ tokens, lm-head,
+acceptance, MTP catch-up and the next $k$ drafts) inside one cooperative kernel separated by
+software grid barriers. It reads the same GGUF, keeps the k-quant encodings, and rolls the
+DeltaNet state back by replaying accepted drafts from a small ring instead of snapshotting it.
+The draft lm-head is restricted to the 32{,}768 most frequent tokens; verification uses the full
+vocabulary. It is text only, and its KV cache is \texttt{f16} or \texttt{q8}.
+
+\paragraph{NInfer-4090.}
+NInfer \citep{ninfer} is a C++20/CUDA engine written for the Qwen3.6/3.8 family; we use the
+\texttt{sm\_89} port \citep{ninfer4090}. It loads its own groupwise artifact
+(4- and 5-bit weight groups, 8-bit output head) and offers MTP or DFlash2 drafting, a paged KV
+cache in several formats (Table~\ref{tab:kvtypes}), prefix reuse at message boundaries, and an
+optional vision tower. Its image targets CUDA~13.1; on the 580 driver (CUDA~13.0) it runs through
+minor-version compatibility once the container's requirement check is disabled.
+
+\paragraph{azllm (tqLLM).}
+tqLLM \citep{tqllm} is a C++/CUDA engine for Qwen models stored in its own rotated
+TurboQuant weight types, a GGUF extension that stock llama.cpp cannot load. azllm \citep{azllm}
+is a fork that changes only the serving layer (streaming with tools, live timings, prompt-cache
+bookmarks); we found it through a practitioner's report. We serve the
+\texttt{TQ\_L} weights (4.31 bits per weight, 14.7\,GB, against about 5.2 for the other two
+files) with a DFlash2 drafter quantized to TQ3 (0.79\,GB) and a 65{,}536-token
+draft vocabulary. KV formats pair rotated 8- or 4-bit keys with 8-, 4-, 3- or 2-bit values; the
+prompt cache keeps the previous request's KV so that a repeated prefix is not read again. The
+vision projector must be F16 or F32. \texttt{TQ\_L} embeds Qwen's official chat template, which
+fails on tool calls whose arguments arrive as a JSON string, so our launcher passes the fixed
+template that the \texttt{TQ3\_4S-v2} file embeds.
+
+\paragraph{Engines not retained.}
+A Windows-oriented fork of NInfer-4090 has the same single-token decode rate
+(about 52\,tok/s) and its KV modes are already merged into the port we use. vLLM and SGLang with
+4-bit AWQ/GPTQ weights leave too little memory for a useful KV cache on 24\,GB, and NVFP4 needs
+Blackwell. Lucebox runs DFlash2 inside a llama.cpp-based server but publishes
+no RTX~4090 figure, and the one community report of DFlash2 in llama.cpp on this card we found
+gives 73--75\,tok/s.

@@ -1,0 +1,7 @@
+--context 131072 --kv q8/q4 => started | everything on GPU
+--context 253952 --kv q8/q4 => started | fit: 0.00 GB free (< 0.81 GB margin): token embeddings to host memory;fit: 0.00 GB free (< 0.81 GB margin): int8 LM head to host memory;LM head int8 copy in host memory (1.43 GB of VRAM freed);token embeddings in host memory (0.72 GB of VRAM freed);t
+--context 241664 --kv q8/q4 --mmproj F16 => started | fit: 0.00 GB free (< 0.81 GB margin): token embeddings to host memory;fit: 0.00 GB free (< 0.81 GB margin): int8 LM head to host memory;LM head int8 copy in host memory (1.43 GB of VRAM freed);token embeddings in host memory (0.72 GB of VRAM freed);
+--context 262144 --kv q4/q4 => started | everything on GPU
+--context 262144 --kv q4/q4 --mmproj F16 => started | fit: 0.34 GB free (< 0.81 GB margin): token embeddings to host memory;token embeddings in host memory (0.72 GB of VRAM freed);
+--context 184320 --kv q8 => started | fit: 0.00 GB free (< 0.81 GB margin): token embeddings to host memory;fit: 0.00 GB free (< 0.81 GB margin): int8 LM head to host memory;LM head int8 copy in host memory (1.43 GB of VRAM freed);token embeddings in host memory (0.72 GB of VRAM freed);
+--context 155648 --kv q8 --mmproj F16 => started | fit: 0.00 GB free (< 0.81 GB margin): token embeddings to host memory;fit: 0.00 GB free (< 0.81 GB margin): int8 LM head to host memory;LM head int8 copy in host memory (1.43 GB of VRAM freed);token embeddings in host memory (0.72 GB of VRAM freed);

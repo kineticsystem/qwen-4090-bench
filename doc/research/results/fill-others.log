@@ -1,0 +1,84 @@
+qwen-openjet ready on http://localhost:8084/v1
+==========
+== CUDA ==
+==========
+openjet-q8-147k: 457600 chars -> 126895 prompt tokens, prefill 82.0s
+openjet-q8-147k: 507941 chars -> 142760 prompt tokens, prefill 98.6s
+  depth  19% llm_arch_is_hybrid               lines 100% sim 1.00 ttft   98.7s decode 128.2 tok/s
+  depth  20% llm_arch_supports_sm_tensor      lines 100% sim 1.00 ttft   98.9s decode 125.4 tok/s
+  depth  23% split_simple                     lines 100% sim 1.00 ttft   98.8s decode 120.9 tok/s
+  depth  27% llm_chat_detect_template         lines 100% sim 1.00 ttft   98.8s decode 120.8 tok/s
+  depth  43% resolve_fused_ops                lines 100% sim 1.00 ttft   98.8s decode 124.7 tok/s
+  depth  44% kv_stream_switch_phase           lines 100% sim 1.00 ttft   98.9s decode 127.1 tok/s
+  depth  53% encode                           lines 100% sim 1.00 ttft   98.9s decode 126.2 tok/s
+  depth  62% graph_get_cb                     lines 100% sim 1.00 ttft   98.8s decode 127.5 tok/s
+  depth  70% llama_init_from_model            lines 100% sim 1.00 ttft   98.8s decode 126.6 tok/s
+  depth  79% parse_rule                       lines 100% sim 1.00 ttft   98.9s decode 125.5 tok/s
+  depth  86% llm_sched_needs_moe_f16_act_guard lines 100% sim 1.00 ttft   98.8s decode 125.3 tok/s
+  depth  95% reset                            lines 100% sim 1.00 ttft   98.8s decode 123.0 tok/s
+== openjet-q8-147k @ 142807 tokens: exact 100%, lines 100%, decode 125.1 tok/s
+== openjet-q8-147k: server alive
+== openjet-q8-147k: vision: HTTP 400 {"error": {"message": "unsupported content part type 'image_url' (text only)", "type": "invalid_request_error"}}
+qwen-baseline ready on http://localhost:8084/v1
+==========
+== CUDA ==
+==========
+baseline-128k-vision: 396800 chars -> 110170 prompt tokens, prefill 60.6s
+baseline-128k-vision: 439912 chars -> 121322 prompt tokens, prefill 10.3s
+  depth  22% llm_arch_is_hybrid               lines 100% sim 1.00 ttft    1.1s decode  52.8 tok/s
+  depth  23% llm_arch_supports_sm_tensor      lines 100% sim 1.00 ttft    1.1s decode  53.3 tok/s
+  depth  26% split_simple                     lines 100% sim 1.00 ttft    1.2s decode  56.8 tok/s
+  depth  30% llama_batch_init                 lines 100% sim 1.00 ttft    0.9s decode  56.8 tok/s
+  depth  31% llm_chat_detect_template         lines  87% sim 0.87 ttft    0.9s decode  55.2 tok/s
+  depth  49% resolve_fused_ops                lines 100% sim 1.00 ttft    0.9s decode  56.7 tok/s
+  depth  51% kv_stream_switch_phase           lines 100% sim 1.00 ttft    0.9s decode  56.9 tok/s
+  depth  62% encode                           lines 100% sim 1.00 ttft    0.9s decode  56.9 tok/s
+  depth  71% graph_max_nodes                  lines 100% sim 1.00 ttft    1.3s decode  53.2 tok/s
+  depth  80% llama_context_default_params     lines 100% sim 1.00 ttft    1.0s decode  54.7 tok/s
+  depth  88% print_rule_binary                lines 100% sim 1.00 ttft    1.0s decode  54.2 tok/s
+  depth  97% llama_grammar_clone_impl         lines 100% sim 1.00 ttft    1.1s decode  55.6 tok/s
+== baseline-128k-vision @ 121375 tokens: exact 92%, lines 99%, decode 55.3 tok/s
+== baseline-128k-vision: server alive
+== baseline-128k-vision: vision: 
+qwen-ninfer ready on http://localhost:8084/v1
+==========
+== CUDA ==
+==========
+ninfer-long-256k-vision: 822400 chars -> 237788 prompt tokens, prefill 189.5s
+ninfer-long-256k-vision: 875512 chars -> 252340 prompt tokens, prefill 207.6s
+  depth  11% llm_arch_is_hybrid               lines 100% sim 1.00 ttft    0.6s decode 100.6 tok/s
+  depth  13% split_simple                     lines 100% sim 1.00 ttft    0.6s decode 113.0 tok/s
+  depth  25% resolve_fused_ops                lines 100% sim 1.00 ttft    0.6s decode 111.3 tok/s
+  depth  31% encode                           lines 100% sim 1.00 ttft    0.6s decode 108.8 tok/s
+  depth  38% state_seq_get_data               lines 100% sim 1.00 ttft    0.6s decode 105.9 tok/s
+  depth  46% parse_rule                       lines 100% sim 1.00 ttft    0.6s decode 109.8 tok/s
+  depth  55% reset                            lines 100% sim 1.00 ttft    0.6s decode 102.6 tok/s
+  depth  60% build_inp_out_ids                lines 100% sim 1.00 ttft    0.6s decode 111.3 tok/s
+  depth  67% n_embd_s_ingredient              lines 100% sim 1.00 ttft    0.6s decode 112.8 tok/s
+  depth  80% set_input_cell_pos               lines 100% sim 1.00 ttft    0.6s decode 109.4 tok/s
+  depth  87% update                           lines 100% sim 1.00 ttft    0.6s decode 109.1 tok/s
+  depth  98% init_batch                       lines 100% sim 1.00 ttft    0.6s decode 106.4 tok/s
+== ninfer-long-256k-vision @ 252392 tokens: exact 100%, lines 100%, decode 108.4 tok/s
+== ninfer-long-256k-vision: server alive
+== ninfer-long-256k-vision: vision: This image displays a user interface for configuring a "Logitech Logitech Dual Action" game controller, showing its current axis values (all at 0) and
+qwen-ninfer ready on http://localhost:8084/v1
+==========
+== CUDA ==
+==========
+ninfer-precise-229k-text: 720000 chars -> 208561 prompt tokens, prefill 154.9s
+ninfer-precise-229k-text: 765099 chars -> 221046 prompt tokens, prefill 168.8s
+  depth  13% llm_arch_is_hybrid               lines 100% sim 1.00 ttft    0.5s decode 100.8 tok/s
+  depth  13% llm_arch_supports_sm_tensor      lines 100% sim 1.00 ttft    0.6s decode  99.7 tok/s
+  depth  18% llm_chat_detect_template         lines 100% sim 1.00 ttft    0.6s decode  96.6 tok/s
+  depth  29% kv_stream_switch_phase           lines 100% sim 1.00 ttft    0.5s decode 110.5 tok/s
+  depth  37% decode                           lines 100% sim 1.00 ttft    0.6s decode 106.7 tok/s
+  depth  46% llama_context_default_params     lines 100% sim 1.00 ttft    0.6s decode 106.0 tok/s
+  depth  53% parse                            lines   0% sim 0.94 ttft    0.6s decode 112.0 tok/s
+  depth  63% reset                            lines 100% sim 1.00 ttft    0.6s decode 101.6 tok/s
+  depth  68% build_inp_out_ids                lines 100% sim 1.00 ttft    0.5s decode 111.4 tok/s
+  depth  77% n_embd_s_ingredient              lines 100% sim 1.00 ttft    0.6s decode 112.9 tok/s
+  depth  87% clear_compressed                 lines 100% sim 1.00 ttft    0.6s decode 108.4 tok/s
+  depth  98% clear                            lines 100% sim 1.00 ttft    0.5s decode 108.5 tok/s
+== ninfer-precise-229k-text @ 221095 tokens: exact 92%, lines 92%, decode 106.3 tok/s
+== ninfer-precise-229k-text: server alive
+== ninfer-precise-229k-text: vision: HTTP 400 {"error":{"code":"vision_disabled","message":"Vision is disabled for this server","param":"messages","type":"invalid_request_error"}}

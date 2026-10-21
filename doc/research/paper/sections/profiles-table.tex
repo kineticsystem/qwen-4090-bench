@@ -1,0 +1,20 @@
+\begin{table*}[t]
+  \centering
+  \caption{The retained server configurations, as started by the launcher scripts. Speeds in
+           tok/s (speed-up over the baseline in parentheses); accuracy greedy, thinking off.}
+  \label{tab:profiles}
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{@{}llrccrrrrr@{}}
+    \toprule
+    Configuration & KV (K/V bits) & Context & Vision & Drafter & Short & Thinking & 29K prompt & GSM8K & HumanEval \\
+    \midrule
+    Baseline (llama.cpp) & q8\_0/turbo4 (8/4) & 128{,}000 & yes & MTP 2 & 89.6 & 84.2 & 76.0 & 97.2 & 96.3 \\
+    OpenJet & q8 (8/8) & 131{,}072 & no & MTP 4 & 135.9 (1.52$\times$) & 130.2 & 110.7 & \OJGSM & \OJHE \\
+    NInfer \texttt{precise} & rk8v4 (8/4) & 204{,}800 & yes & MTP 3 & 137.4 (1.53$\times$) & 129.7 & 122.2 & 97.6 & 95.1 \\
+    NInfer \texttt{long} & E8 (4/4) & 262{,}144 & yes & MTP 3 & 139.0 (1.55$\times$) & 131.0 & 121.8 & 96.0 & 96.3 \\
+    NInfer \texttt{fast} & E8 (4/4) & 192{,}512 & yes & DFlash2 7 & 166.0 (1.85$\times$) & 153.3 & 132.8 & 97.2 & 95.7 \\
+    azllm & q8/q4 (8/4) & 241{,}664 & yes & DFlash2 7 & \textbf{228.6} (2.55$\times$) & \textbf{208.4} & \textbf{150.1} & 95.2 & 95.7 \\
+    azllm, full window & q4/q4 (4/4) & 262{,}144 & yes & DFlash2 7 & \AZLS & \AZLT & \AZLL & \AZLG & \AZLH \\
+    \bottomrule
+  \end{tabular}}
+\end{table*}

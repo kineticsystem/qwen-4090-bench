@@ -1,0 +1,7 @@
+# LaTeX toolchain for the paper: pdflatex, bibtex, pgfplots, TikZ, booktabs.
+FROM ubuntu:24.04
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended \
+      texlive-pictures texlive-science texlive-bibtex-extra latexmk lmodern poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /work/paper

@@ -1,0 +1,16 @@
+\begin{tikzpicture}
+    \begin{axis}[
+        ybar, width=\columnwidth, height=5.2cm, bar width=4pt,
+        ymin=0, ymax=320, ylabel={tok/s}, ylabel style={font=\small},
+        symbolic x coords={code,code2,math,list,explain,prose},
+        xtick=data, xticklabel style={font=\scriptsize}, yticklabel style={font=\scriptsize},
+        legend style={font=\scriptsize, at={(0.5,1.03)}, anchor=south, draw=none, legend columns=2, /tikz/every even column/.append style={column sep=6pt}},
+        legend cell align=left, enlarge x limits=0.1,
+        every axis plot/.append style={draw=none}, ymajorgrids, grid style={gray!20}]
+      \addplot[fill=cbase] coordinates {(code,97.0) (code2,94.7) (math,96.6) (list,94.6) (explain,84.0) (prose,70.5)};
+      \addplot[fill=cjet] coordinates {(code,165.4) (code2,160.5) (math,150.7) (list,120.6) (explain,121.1) (prose,90.1)};
+      \addplot[fill=cnin] coordinates {(code,212.9) (code2,214.7) (math,205.7) (list,151.2) (explain,132.3) (prose,90.1)};
+      \addplot[fill=cgood] coordinates {(code,302.7) (code2,282.6) (math,276.1) (list,207.7) (explain,193.1) (prose,120.0)};
+      \legend{Baseline, OpenJet MTP 4, NInfer DFlash2 7, azllm DFlash2 7}
+    \end{axis}
+  \end{tikzpicture}

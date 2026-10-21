@@ -1,0 +1,4 @@
+openjet/q8/d4 max_context=131072
+openjet/f16/d4 max_context=69632
+openjet/q8/d4/pfcap1024 max_context=139264
+openjet/q8/d4/pfcap512 max_context=147456

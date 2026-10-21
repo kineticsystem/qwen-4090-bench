@@ -1,0 +1,7 @@
+qwen-azllm ready on http://localhost:8084/v1
+== prof-azllm-q8q4: mean 229.0 tok/s, median 240.4 tok/s
+== prof-azllm-q8q4: mean 210.1 tok/s, median 216.6 tok/s (thinking)
+== prof-azllm-q8q4-long: mean 151.5 tok/s, median 149.0 tok/s (29K prompt)
+prof-azllm-q8q4: GSM8K 95.2% (250)
+prof-azllm-q8q4: HumanEval 95.7% (164)  [576s]
+prof-azllm-q8q4 vision: This image displays a user interface for configuring a Logitech Dual Action game controller, showing its current axis and button states with all axes 

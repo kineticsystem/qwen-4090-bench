@@ -1,0 +1,4 @@
+# The models, downloaded by ./docker/dock.sh models: tens of gigabytes, and not ours.
+/models/
+# The engines' builds, made by ./docker/dock.sh build.
+/build/

@@ -1,0 +1,12 @@
+bf16 ctx=65536: kv: bf16, prefill activations: a16, corpus: custom-code_ppl.txt / custom, context/stride: 65536/32768
+bf16 ctx=65536: domain                            tokens        mean_nll             ppl
+bf16 ctx=65536: custom                            359927        0.384798        1.469317
+bf16 ctx=65536: overall                           359927        0.384798        1.469317
+bf16 ctx=65536: score rate: 999.4 tok/s
+bf16 ctx=65536: report: "/tmp/ppl-out-bf16/report.json"
+int8 ctx=65536: overall                           359927        0.384701        1.469174
+rk4v4-e8 ctx=65536: overall                           359927        0.387965        1.473979
+rk8v4 ctx=65536: overall                           359927        0.385284        1.470032
+int8 ctx=131072: overall                           359927        0.371733        1.450245
+rk8v4 ctx=131072: overall                           359927        0.372296        1.451062
+rk4v4-e8 ctx=131072: overall                           359927        0.374681        1.454527

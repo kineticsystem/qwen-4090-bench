@@ -1,0 +1,25 @@
+== azllm TQ_L, q8 KV, FP16 prefill
+chunk  0  KLD 0.00014  top1 0.9987
+chunk  1  KLD 0.00033  top1 0.9961
+chunk  2  KLD 0.00029  top1 0.9965
+chunk  3  KLD 0.00044  top1 0.9969
+positions 131072  mean KLD 0.00030  median 0.00001  p99 0.0040  p99.9 0.0163  top1 0.9971  PPL 1.4644
+== llama.cpp UD-Q4_K_XL, q8_0/q8_0
+[1]1.2460 [2]1.3640 [3]1.4563 [4]1.4619 [5]1.4448 Final estimate: PPL = 1.4448 +/- 0.00434 
+== NInfer, int8 KV
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 13.1.2
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+overall                           359927        0.384701        1.469174

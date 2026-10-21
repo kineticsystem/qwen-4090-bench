@@ -1,0 +1,26 @@
+\begin{tikzpicture}[
+      font=\footnotesize,
+      box/.style={draw=blue!60!black, fill=blue!55!black, text=white, rounded corners=2pt,
+                  minimum width=3.7cm, minimum height=0.75cm, align=center},
+      weights/.style={draw=gray!70, fill=gray!10, rounded corners=2pt,
+                      minimum width=3.7cm, minimum height=0.75cm, align=center},
+      arr/.style={-{Stealth[length=2mm]}, gray!70!black, thick}]
+    % columns
+    \node[box] (l1) at (0,0) {llama-server\\ggml graph, CUDA graphs};
+    \node[box] (l2) at (0,-1.25) {MTP head\\2 drafts};
+    \node[weights] (l3) at (0,-2.5) {UD-Q4\_K\_XL GGUF\\17.6\,GB};
+    \node[box] (o1) at (4.3,0) {OpenJet server\\one persistent kernel};
+    \node[box] (o2) at (4.3,-1.25) {MTP head on device\\4 drafts, 32K vocab};
+    \node[weights] (o3) at (4.3,-2.5) {same GGUF\\re-laid-out k-quants};
+    \node[box] (n1) at (8.6,0) {ninfer-serve\\fused kernels, CUDA graphs};
+    \node[box] (n2) at (8.6,-1.25) {MTP 3 drafts or\\DFlash2 7 drafts};
+    \node[weights] (n3) at (8.6,-2.5) {.ninfer artifact\\4/5-bit groups, 16.7\,GiB};
+    \node[box] (a1) at (12.9,0) {tqserve (azllm)\\fused kernels, prompt cache};
+    \node[box] (a2) at (12.9,-1.25) {DFlash2 7 drafts\\0.79\,GB drafter};
+    \node[weights] (a3) at (12.9,-2.5) {TQ\_L GGUF\\4.31 bits/weight, 14.7\,GB};
+    \foreach \c in {l,o,n,a} { \draw[arr] (\c3) -- (\c2); \draw[arr] (\c2) -- (\c1); }
+    \node[font=\small\bfseries] at (0,0.8) {Baseline};
+    \node[font=\small\bfseries] at (4.3,0.8) {OpenJet};
+    \node[font=\small\bfseries] at (8.6,0.8) {NInfer-4090};
+    \node[font=\small\bfseries] at (12.9,0.8) {azllm};
+  \end{tikzpicture}

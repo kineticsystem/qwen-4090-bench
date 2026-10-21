@@ -1,0 +1,20 @@
+[submodule "engines/llama.cpp"]
+	path = engines/llama.cpp
+	url = https://github.com/ggml-org/llama.cpp
+[submodule "engines/llama-cpp-turboquant"]
+	path = engines/llama-cpp-turboquant
+	url = https://github.com/TheTom/llama-cpp-turboquant
+[submodule "engines/ninfer-4090"]
+	path = engines/ninfer-4090
+	url = https://github.com/sergiuszm/ninfer-4090
+[submodule "engines/azllm"]
+	path = engines/azllm
+	url = https://github.com/xhinker/azllm
+[submodule "engines/llama-swap"]
+	path = engines/llama-swap
+	url = https://github.com/mostlygeek/llama-swap
+	ignore = dirty
+[submodule "engines/open-jet"]
+	path = engines/open-jet
+	url = https://github.com/L-Forster/open-jet
+	ignore = dirty

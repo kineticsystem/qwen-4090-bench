@@ -1,0 +1,16 @@
+\begin{tikzpicture}
+    \begin{axis}[
+        width=0.9\columnwidth, height=5.2cm, xmin=1.5, xmax=10.5, ymin=80, ymax=245,
+        xlabel={draft tokens per step}, ylabel={tok/s},
+        xlabel style={font=\small}, ylabel style={font=\small},
+        ticklabel style={font=\scriptsize}, xtick={2,3,...,10},
+        legend style={font=\scriptsize, at={(0.5,1.03)}, anchor=south, draw=none, legend columns=3, /tikz/every even column/.append style={column sep=4pt}},
+        legend cell align=left, grid=major, grid style={gray!20}]
+      \addplot[cbase, thick, mark=*] coordinates {(2,89.6) (3,98.3) (4,105.8) (5,106.6) (6,104.7)};
+      \addplot[cnin2, thick, mark=square*] coordinates {(3,137.2) (4,139.5) (5,132.5)};
+      \addplot[cnin, thick, mark=triangle*] coordinates {(3,136.3) (5,160.3) (6,155.6) (7,162.8) (8,136.8) (10,133.6)};
+      \addplot[cjet, only marks, mark=diamond*, mark size=3pt] coordinates {(4,134.7)};
+      \addplot[cgood, thick, mark=pentagon*] coordinates {(5,205.6) (6,213.1) (7,230.4) (8,230.1) (10,230.7)};
+      \legend{llama.cpp MTP, NInfer MTP, NInfer DFlash2, OpenJet MTP, azllm DFlash2}
+    \end{axis}
+  \end{tikzpicture}

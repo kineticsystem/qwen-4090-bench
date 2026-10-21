@@ -1,0 +1,57 @@
+\documentclass[10pt,twocolumn]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=0.75in,columnsep=0.25in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{groupplots}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf}
+
+% One palette for every plot: baseline grey, OpenJet orange, NInfer blue.
+\definecolor{cbase}{HTML}{7F7F7F}
+\definecolor{cjet}{HTML}{E1812C}
+\definecolor{cnin}{HTML}{3274A1}
+\definecolor{cnin2}{HTML}{8CB5D6}
+\definecolor{cgood}{HTML}{3A923A}
+
+\title{\Large\bfseries Serving Qwen3.8-27B on a Single RTX~4090:\\
+       2.5$\times$ Faster Decoding and Twice the Context at Baseline Precision}
+\author{The opencode-4090 project\\\small\url{https://github.com/kineticsystem/opencode-4090}}
+\date{October 2026}
+
+\newcommand{\PROFILETABLE}{\input{sections/profiles-table}}
+\newcommand{\OJGSM}{95.6}\newcommand{\OJHE}{96.3}
+% azllm, full window (q4/q4, 262K): short, thinking, 29K, GSM8K, HumanEval
+\newcommand{\AZLS}{228.8 (2.55$\times$)}\newcommand{\AZLT}{195.1}\newcommand{\AZLL}{145.6}\newcommand{\AZLG}{96.8}\newcommand{\AZLH}{95.7}
+\begin{document}
+\maketitle
+
+\input{sections/abstract}
+\input{sections/intro}
+\input{sections/background}
+\input{sections/systems}
+\input{sections/method}
+\input{sections/results}
+\input{sections/discussion}
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\onecolumn
+\appendix
+\input{sections/appendix}
+\end{document}

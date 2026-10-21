@@ -1,0 +1,63 @@
+qwen-ninfer ready on http://localhost:8084/v1
+==========
+== CUDA ==
+==========
+ninfer-long-256k-vision: 822400 chars -> 237788 prompt tokens, prefill 189.6s
+ninfer-long-256k-vision: 875512 chars -> 252340 prompt tokens, prefill 207.6s
+  depth  11% llm_arch_is_hybrid               lines 100% sim 1.00 ttft    0.6s decode 100.9 tok/s
+  depth  13% split_simple                     lines 100% sim 1.00 ttft    0.6s decode 113.4 tok/s
+  depth  25% resolve_fused_ops                lines 100% sim 1.00 ttft    0.6s decode 111.4 tok/s
+  depth  31% encode                           lines 100% sim 1.00 ttft    0.6s decode 109.0 tok/s
+  depth  38% state_seq_get_data               lines 100% sim 1.00 ttft    0.6s decode 106.2 tok/s
+  depth  46% parse_rule                       lines 100% sim 1.00 ttft    0.6s decode 110.0 tok/s
+  depth  54% set_input                        lines   0% sim 0.08 ttft    0.6s decode 110.8 tok/s
+  depth  60% build_inp_out_ids                lines 100% sim 1.00 ttft    0.6s decode 111.6 tok/s
+  depth  67% n_embd_s_ingredient              lines 100% sim 1.00 ttft    0.6s decode 113.0 tok/s
+  depth  80% set_input_cell_pos               lines 100% sim 1.00 ttft    0.6s decode 109.6 tok/s
+  depth  87% update                           lines 100% sim 1.00 ttft    0.6s decode 109.3 tok/s
+  depth  98% init_batch                       lines 100% sim 1.00 ttft    0.6s decode 106.6 tok/s
+== ninfer-long-256k-vision @ 252392 tokens: exact 92%, lines 92%, decode 109.3 tok/s
+== ninfer-long-256k-vision: server alive
+== ninfer-long-256k-vision: vision: This image displays a user interface for configuring a "Logitech Logitech Dual Action" game controller, showing its current axis values (all at 0) and
+qwen-ninfer ready on http://localhost:8084/v1
+==========
+== CUDA ==
+==========
+ninfer-precise-200k-vision: 636800 chars -> 183498 prompt tokens, prefill 129.7s
+ninfer-precise-200k-vision: 680238 chars -> 196718 prompt tokens, prefill 143.6s
+  depth  14% llm_arch_is_hybrid               lines 100% sim 1.00 ttft    0.5s decode 104.4 tok/s
+  depth  15% llm_arch_supports_sm_tensor      lines 100% sim 1.00 ttft    0.5s decode 103.2 tok/s
+  depth  20% llm_chat_detect_template         lines 100% sim 1.00 ttft    0.5s decode  99.8 tok/s
+  depth  32% resolve_fused_ops                lines 100% sim 1.00 ttft    0.5s decode 112.3 tok/s
+  depth  40% encode                           lines 100% sim 1.00 ttft    0.5s decode 110.9 tok/s
+  depth  46% graph_max_nodes                  lines 100% sim 1.00 ttft    0.5s decode 107.8 tok/s
+  depth  56% parse_hex                        lines 100% sim 1.00 ttft    0.5s decode 117.2 tok/s
+  depth  63% llama_grammar_clone_impl         lines 100% sim 1.00 ttft    0.5s decode 113.2 tok/s
+  depth  71% reset                            lines 100% sim 1.00 ttft    0.5s decode 105.1 tok/s
+  depth  77% build_inp_out_ids                lines 100% sim 1.00 ttft    0.5s decode 115.3 tok/s
+  depth  86% n_embd_s_ingredient              lines 100% sim 1.00 ttft    0.5s decode 117.6 tok/s
+  depth  98% clear_compressed                 lines 100% sim 1.00 ttft    0.5s decode 112.0 tok/s
+== ninfer-precise-200k-vision @ 196772 tokens: exact 100%, lines 100%, decode 109.9 tok/s
+== ninfer-precise-200k-vision: server alive
+== ninfer-precise-200k-vision: vision: This image displays a user interface for configuring a "Logitech Logitech Dual Action" game controller (device `/dev/input/js0`), showing its current 
+qwen-ninfer ready on http://localhost:8084/v1
+==========
+== CUDA ==
+==========
+ninfer-fast-188k-vision: 598400 chars -> 171955 prompt tokens, prefill 120.7s
+ninfer-fast-188k-vision: 640994 chars -> 184833 prompt tokens, prefill 134.0s
+  depth  15% llm_arch_is_hybrid               lines 100% sim 1.00 ttft    0.5s decode 124.9 tok/s
+  depth  15% llm_arch_supports_sm_tensor      lines 100% sim 1.00 ttft    0.5s decode 118.7 tok/s
+  depth  21% llm_chat_detect_template         lines 100% sim 1.00 ttft    0.5s decode  97.1 tok/s
+  depth  34% resolve_fused_ops                lines 100% sim 1.00 ttft    0.5s decode 105.6 tok/s
+  depth  35% kv_stream_switch_phase           lines 100% sim 1.00 ttft    0.5s decode 103.1 tok/s
+  depth  44% decode                           lines 100% sim 1.00 ttft    0.5s decode 106.2 tok/s
+  depth  53% opt_init                         lines 100% sim 1.00 ttft    0.5s decode 114.6 tok/s
+  depth  63% parse_rule                       lines 100% sim 1.00 ttft    0.5s decode 119.3 tok/s
+  depth  68% llm_sched_needs_moe_f16_act_guard lines 100% sim 1.00 ttft    0.5s decode 134.9 tok/s
+  depth  82% build_inp_out_ids                lines 100% sim 1.00 ttft    0.5s decode 104.6 tok/s
+  depth  91% n_embd_r                         lines 100% sim 1.00 ttft    0.5s decode 135.0 tok/s
+  depth  92% n_embd_s_ingredient              lines 100% sim 1.00 ttft    0.5s decode 112.8 tok/s
+== ninfer-fast-188k-vision @ 184886 tokens: exact 100%, lines 100%, decode 114.7 tok/s
+== ninfer-fast-188k-vision: server alive
+== ninfer-fast-188k-vision: vision: This image displays a user interface for configuring a "Logitech Logitech Dual Action" game controller, showing its current axis values (all at 0) and

@@ -1,0 +1,15 @@
+\begin{tikzpicture}
+  \begin{axis}[
+      xbar, width=0.58\columnwidth, height=3.6cm, bar width=9pt,
+      xmin=0, xmax=2.6, xlabel={$\Delta$ NLL per token (\%)},
+      xlabel style={font=\small},
+      symbolic y coords={ud,tq,ni}, ytick={ud,tq,ni}, y dir=reverse,
+      yticklabels={baseline, azllm, NInfer},
+      yticklabel style={font=\scriptsize}, xticklabel style={font=\scriptsize},
+      point meta=explicit symbolic, nodes near coords, nodes near coords style={font=\scriptsize, anchor=west},
+      every axis plot/.append style={draw=none, bar shift=0pt}, xmajorgrids, grid style={gray!20}]
+    \addplot[fill=cbase] coordinates {(0,ud) [0.4330 nats]};
+    \addplot[fill=cgood] coordinates {(0.46,tq) [+0.46\%]};
+    \addplot[fill=cnin] coordinates {(1.78,ni) [+1.78\%]};
+  \end{axis}
+\end{tikzpicture}

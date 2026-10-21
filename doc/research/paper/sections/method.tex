@@ -1,0 +1,53 @@
+\section{Method}
+\label{sec:method}
+
+\paragraph{Hardware and isolation.}
+One NVIDIA GeForce RTX~4090 (24\,GB, 450\,W stock limit, PCIe~3.0~x16), an Intel Core
+i9-10900K and 62\,GB of RAM, under Ubuntu with driver 580.178. Every engine is built and run in a
+throw-away Docker container; the model files are mounted read-only. One server runs at a time.
+
+\paragraph{Decode speed.}
+A client streams each answer and computes decode speed as $(n-1)/(t_\text{last}-t_\text{first})$,
+where $n$ is the number of generated tokens and $t$ the arrival times of the first and last
+streamed tokens, so prompt processing is excluded and every engine is measured the same way. The
+short benchmark has six prompts (two coding tasks, a short story, a technical explanation, a word
+problem and a table), up to 1024 tokens each, with the sampling the model card recommends
+(temperature 0.6, top-$p$ 0.95, top-$k$ 20, min-$p$ 0, presence penalty 0) and a fixed seed. We
+report the mean over the prompts. Final configurations were repeated three times; with a fixed
+seed the repetitions agree within 1\,tok/s, while separate server starts vary by about 5\%.
+The long-prompt benchmark prefixes three questions with 29{,}005 tokens of CUDA source code.
+
+\paragraph{Accuracy.}
+GSM8K (first 250 test problems) and HumanEval
+(all 164, pass@1, run against the official tests), greedy, thinking off.
+
+\paragraph{Context capacity.}
+For NInfer, the memory planner decides at startup whether a configuration fits, so we
+binary-search the largest \texttt{--max-context} (in steps of 4096 tokens) that starts. For
+OpenJet, which allocates at startup and fails with \texttt{cudaMalloc} out of memory, we do the
+same. A start is not proof: each retained configuration is then filled to within 2--3\% of its
+limit with real source code and queried (next paragraph); we call a context \emph{usable} only
+if the server answers every question and is still alive afterwards.
+
+\paragraph{KV precision.}
+Two measurements. (i) Code perplexity: NInfer's offline evaluator scores 359{,}927 tokens of
+CUDA/C++ source with windows of 64K (stride 32K) or 128K (stride 64K) tokens, for each KV format;
+we patched its command line to accept the rotated and lattice formats that the server already
+supports. For llama.cpp, \texttt{llama-perplexity} scores the same text in 64K chunks. For
+azllm, \texttt{tqkld} first dumps the top-16 log-probabilities of the \texttt{q8} cache as a
+reference, then scores the other formats against it (KL divergence, top-1 agreement and NLL),
+on four 64K chunks of which the last 32K positions are scored. Within each engine, the most
+precise format it offers is the reference. (ii) Long-context recall: the prompt holds up to 252K tokens of
+llama.cpp source, then twelve questions ask the model to copy, exactly, the first 16 lines of
+the body of a named function in a named file, at depths spread from 10\% to 98\%. A function
+qualifies only if its name is defined once in its file. We report the share of lines copied
+exactly.
+
+\paragraph{Weight precision.}
+The three weight files are compared on the same 98{,}304 positions: chunks 1--3 of 64K tokens,
+last 32K of each, with 8-bit keys and values. \texttt{llama-perplexity} with 64K chunks,
+\texttt{tqkld --tail 32768}, and NInfer's windows starting at 64K, 128K and 192K (stride 32K)
+all score exactly these positions, and the three tokenizers produce the same 359{,}928 tokens. The
+comparison includes each engine's own arithmetic, not the weights alone, and there is no BF16
+reference: it tells which pipeline predicts the code best, not which is closest to the original
+model.

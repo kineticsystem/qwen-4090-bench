@@ -1,0 +1,14 @@
+dflash2/int8/text max_context=114688
+mtp3/int8/text max_context=172032
+dflash2/int8/--vision max_context=98304
+mtp3/int8/--vision max_context=155648
+dflash2/rk8v4/text max_context=151552
+mtp3/rk8v4/text max_context=229376
+dflash2/rk8v4/--vision max_context=131072
+mtp3/rk8v4/--vision max_context=208896
+dflash2/rk4v4-e8/text max_context=225280
+mtp3/rk4v4-e8/text max_context=335872
+dflash2/rk4v4-e8/--vision max_context=192512
+mtp3/rk4v4-e8/--vision max_context=307200
+none/rk4v4-e8/text max_context=409600
+dflash2/bf16/text max_context=57344

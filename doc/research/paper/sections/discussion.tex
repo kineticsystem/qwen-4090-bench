@@ -1,0 +1,58 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\paragraph{Where the speed comes from.}
+Single-token decode of a 17\,GB model is bound by memory bandwidth at about 50\,tok/s on this
+card, and every engine sits close to that bound without speculation (NInfer 50.5\,tok/s,
+llama.cpp 45.9, as reported by the NInfer port). All of the gain therefore comes from three
+places: how many tokens a verification pass accepts (the drafter), how cheap the drafter and the
+$(k{+}1)$-token verification are (the engine), and how many bytes a pass reads (the weights).
+DFlash2 accepts longer runs than the model's own MTP head on structured text, and both
+specialized engines make verification cheap. azllm adds the third lever: its weight file is
+16\% smaller than the baseline's, and on code it predicts nearly as well, which is unusual for a
+smaller file and points to the value of rotation before quantization.
+
+\paragraph{Context is a memory budget.}
+On 24\,GB, the weights take 15--18\,GB and everything else competes for the rest: the KV cache,
+the drafter and its own cache, the vision tower, prefill buffers and CUDA graphs. Two choices
+dominate. 4-bit keys double the context, and a block-diffusion drafter with its own KV cache
+costs up to 111K tokens in NInfer. azllm's drafter is small (0.79\,GB), so its fastest
+configuration also reaches the full window. Startup checks are not enough: we filled every
+retained configuration with real code before calling its context usable.
+
+\paragraph{Precision of a 4-bit KV cache.}
+For code, the KV cache matters at long range, where an error in a key shifts attention to the
+wrong line. Exact recall of 16-line functions did not separate any format, even at 252K tokens.
+Perplexity did: a 4-bit cache costs between 0.16\% (azllm) and 0.82\% (NInfer's $E_8$), against
+0.11\% for the baseline's 4-bit values. The difference between the two 4-bit formats is larger
+than the difference between 4- and 8-bit keys within azllm, so the format matters more than the
+bit count.
+
+\paragraph{Limitations.}
+\begin{itemize}
+  \item One machine, one GPU, one session. Accuracy runs are single greedy passes; the GSM8K and
+        HumanEval differences we report are of the size of their noise.
+  \item There is no BF16 reference model: the weight comparison ranks three 4-bit pipelines,
+        each with its own arithmetic, not their distance to the original model.
+  \item We did not evaluate long agentic sessions with tools. Field reports describe looping
+        with four or more MTP drafts in NInfer during long tool-calling runs;
+ our NInfer profiles use three, and azllm limits repetition by
+        default (\texttt{--repeat-limit 256}). A tool-call smoke test passed on azllm with the
+        fixed template.
+  \item Speeds were measured with the card at its stock 450\,W limit. The host reset once,
+        without a GPU error in the log, during back-to-back compute-bound runs; thereafter a
+        guard logged temperatures every 10\,s (peak 80\,$^\circ$C) and never had to pause.
+  \item azllm and NInfer are young projects maintained by few people, and both need weight
+        files of their own.
+\end{itemize}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+On one RTX~4090, Qwen3.8-27B can be served 2.5$\times$ faster than a tuned llama.cpp setup,
+with almost twice its context and vision, at the same precision on code. The engine that
+achieves it, azllm, combines a DFlash2 block-diffusion drafter, a specialized CUDA engine and a
+rotated 4.3-bit weight format that predicts code within 0.5\% of the baseline's 5.2-bit file.
+Its 4-bit KV cache costs 0.16\% in log-likelihood and fits the full 262K-token window with the
+vision tower. We release launcher scripts for every configuration measured here, served
+behind llama-swap \citep{llamaswap}, which starts the engine a request asks for.

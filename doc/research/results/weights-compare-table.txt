@@ -1,0 +1,5 @@
+weights                                  chunk1   chunk2   chunk3  mean 1-3     PPL
+llama.cpp UD-Q4_K_XL (q8_0 KV)           0.4009   0.5069   0.3913    0.4330  1.5419
+azllm TQ_L (q8 KV, int8 prefill)         0.4029   0.5100   0.3920    0.4350  1.5449
+azllm TQ_L (q8 KV, FP16 prefill)         0.4027   0.5099   0.3919    0.4348  1.5447
+NInfer groupwise (int8 KV)               0.4088   0.5151   0.3981    0.4407  1.5537

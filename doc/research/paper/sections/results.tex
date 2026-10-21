@@ -1,0 +1,160 @@
+\section{Results}
+\label{sec:results}
+
+\subsection{Decode speed at short context}
+
+Figure~\ref{fig:speed} ranks the configurations on the six short prompts. Raising the
+baseline's MTP drafts from two to five gains 19\%; beyond five, rejected drafts cost more than
+they bring. OpenJet, with four MTP drafts on the baseline's own GGUF, reaches 134.7\,tok/s
+(1.50$\times$). NInfer with MTP is slightly faster (137--140\,tok/s) and with seven DFlash2
+drafts reaches 166.9\,tok/s (1.86$\times$). azllm, with seven DFlash2 drafts on its smaller
+\texttt{TQ\_L} weights, reaches 228.6\,tok/s: 2.55$\times$ the baseline and 1.37$\times$
+NInfer.
+
+\begin{figure}[t]
+  \centering
+  \input{figures/speed}
+  \caption{Mean decode speed over six short prompts, recommended sampling, thinking off.
+           Grey: llama.cpp; orange: OpenJet; blue: NInfer; green: azllm.}
+  \label{fig:speed}
+\end{figure}
+
+The gain depends on the text (Figure~\ref{fig:perprompt}). On the two coding prompts and the
+word problem, azllm runs 2.9--3.1$\times$ faster than the baseline and NInfer 2.1--2.3$\times$;
+on free prose, which no drafter predicts well, the gains fall to 1.70$\times$ and
+1.28$\times$. Thinking mode (effort \emph{medium}) gives 208.4 against 84.2\,tok/s for azllm
+(2.47$\times$) and 153.3 for NInfer (1.82$\times$).
+
+\begin{figure}[t]
+  \centering
+  \input{figures/perprompt}
+  \caption{Decode speed per prompt. Structured output (code, a worked problem, a table) gains
+           most; a short story gains least.}
+  \label{fig:perprompt}
+\end{figure}
+
+\paragraph{Number of drafts.}
+Figure~\ref{fig:drafts} sweeps the number of draft tokens. NInfer's DFlash2 peaks at five to
+seven drafts and drops sharply beyond; azllm's DFlash2 rises up to seven and stays flat up to
+ten. MTP, which drafts one token per step, peaks at three to five. On NInfer the KV format makes
+no measurable difference at short context (DFlash2 7: 166.9\,tok/s with E8, 166.7 with int8);
+on azllm neither (228.5 with \texttt{q8/q4}, 230.7 with \texttt{q4/q4}).
+
+\begin{figure}[t]
+  \centering
+  \input{figures/drafts}
+  \caption{Decode speed against the number of draft tokens. NInfer DFlash2 points use E8 KV,
+           except 3 and 10 drafts (int8 KV at 96K); azllm points use \texttt{q8/q4} KV at 128K
+           without vision.}
+  \label{fig:drafts}
+\end{figure}
+
+\subsection{Accuracy}
+
+Table~\ref{tab:profiles} lists accuracy next to speed for the retained configurations. With
+greedy decoding and thinking off, all engines solve 238--244 of the 250 GSM8K problems and
+156--158 of the 164 HumanEval problems. OpenJet, which reads exactly the baseline's weights,
+solves four GSM8K problems fewer than the baseline, and azllm solves more with its 4-bit cache
+(242) than with its 8-bit one (238), so differences of this size are the noise of greedy decoding
+on near-ties. To compare the weights themselves we turn to perplexity.
+
+\PROFILETABLE
+
+\subsection{Weight precision}
+
+Figure~\ref{fig:weights} compares the three weight files on the same 98{,}304 positions of code.
+Taking the baseline's UD-Q4\_K\_XL as the reference (0.4330 nats per token), azllm's
+\texttt{TQ\_L} loses 0.46\% and NInfer's groupwise artifact 1.78\%. The ranking holds in every
+chunk. \texttt{TQ\_L} is the smallest file (4.31 against about 5.2 bits per weight), so its
+rotated format buys both speed and precision. Prefilling with FP16 instead of int8 activations
+changes azllm's result by 0.0002 nats, so the gap comes from the weights, not the prefill path.
+
+\begin{figure}[t]
+  \centering
+  \input{figures/weights}
+  \caption{Mean NLL per token on 98{,}304 positions of C++/CUDA code (32K--64K tokens of
+           context each), relative to the baseline's weights; 8-bit KV in every engine. Lower is
+           better.}
+  \label{fig:weights}
+\end{figure}
+
+\subsection{Context capacity}
+
+Figure~\ref{fig:capacity} maps the largest context each configuration accepts. Three factors
+decide it: the KV format (int8 to rk8v4 to E8 roughly doubles NInfer's capacity), the drafter
+(NInfer's DFlash2 keeps its own KV cache and costs 57--111K tokens), and the vision tower
+(16--33K tokens). OpenJet allocates a fixed 2048-token prefill scratch; shrinking it to 512
+tokens raises its ceiling from 131{,}072 to 147{,}456 tokens with \texttt{q8} keys and values,
+and it has no 4-bit KV and no vision. azllm reaches the full native window, with vision, with
+\texttt{q4/q4} KV, and 241{,}664 tokens with \texttt{q8/q4}. Near its limits it moves the token
+embeddings and a copy of the LM head to host memory; decode speed is unchanged (228.5\,tok/s at
+241{,}664 tokens with vision, 230.4 at 131{,}072 without).
+
+\begin{figure*}[t]
+  \centering
+  \input{figures/capacity}
+  \caption{Largest context accepted at startup, binary-searched in steps of 4096 tokens. The
+           baseline's own setting is 128{,}000 tokens. OpenJet has no vision; the no-drafter E8
+           row is shown text only; azllm's search stopped at the native window. The dashed line
+           marks the model's native window; going past it would need RoPE scaling, which we did
+           not test.}
+  \label{fig:capacity}
+\end{figure*}
+
+\paragraph{Does the context really fit?}
+A configuration that starts may still fail later, when a long prompt allocates prefill buffers.
+Table~\ref{tab:fill} fills each retained configuration to near its limit and queries it. Every
+server answered every question and stayed up, and the vision-enabled ones still described an
+image afterwards. The baseline slows to 55\,tok/s at 121K tokens; NInfer stays above
+106\,tok/s at 252K, and azllm answers at 162\,tok/s with 252K tokens in context. azllm's prompt
+cache also shows here: after reading 219K tokens in 147\,s, the next request, the same prompt
+plus 15K tokens, was read in 15\,s.
+
+\begin{table}[t]
+  \centering
+  \caption{Full-context runs: prompt filled with source code, twelve questions asking for the
+           first 16 lines of a named function. ``Exact'': answers with all 16 lines in place;
+           ``Similar'': mean line-sequence similarity; decode speed while answering.}
+  \label{tab:fill}
+  \small
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabular}{@{}lrrrr@{}}
+    \toprule
+    Configuration & Prompt & Exact & Similar & tok/s \\
+    \midrule
+    Baseline, vision & 121{,}375 & 11/12$^a$ & 0.989 & 55.3 \\
+    OpenJet q8, 147K & 142{,}807 & 12/12 & 1.000 & 125.1 \\
+    NInfer fast, vision & 184{,}886 & 12/12 & 1.000 & 114.7 \\
+    NInfer precise, vision & 196{,}772 & 12/12 & 1.000 & 109.9 \\
+    NInfer precise, text & 221{,}095 & 11/12$^b$ & 0.995 & 106.3 \\
+    NInfer long, vision & 252{,}392 & 12/12 & 1.000 & 108.4 \\
+    azllm \texttt{q8/q4}, vision & 233{,}777 & 11/12$^a$ & 0.989 & 132.1 \\
+    azllm \texttt{q4/q4}, vision & 252{,}392 & 12/12 & 1.000 & 161.8 \\
+    \bottomrule
+  \end{tabular}\\[2pt]
+  \parbox{\columnwidth}{\scriptsize $^a$ The function contains the literal text
+  \texttt{<|im\_start|>}, which llama.cpp and azllm read as a special token and drop from the
+  output; the rest was exact. $^b$ The answer omitted the first line, \texttt{try \{}, and copied
+  the other 15 exactly.}
+\end{table}
+
+\subsection{What a 4-bit KV cache costs on code}
+
+The recall test of Table~\ref{tab:fill} does not separate the KV formats: at 98K tokens, int8,
+rk8v4 and E8 all copy every requested line exactly, and the 4-bit formats of both NInfer and
+azllm still do at 252K. Perplexity is more sensitive (Figure~\ref{fig:kvppl}). In NInfer, int8
+is indistinguishable from bf16, rk8v4 costs 0.13\% (0.15\% at 128K context), and E8 with 4-bit
+keys 0.82\% (0.79\%). In llama.cpp, the baseline's \texttt{turbo4} values cost 0.11\%. In
+azllm, \texttt{q8/q4} costs 0.04\% and \texttt{q4/q4} 0.16\%, with a mean KL divergence from the
+\texttt{q8} cache of 0.0008 and 0.0019 nats and top-1 agreement of 99.5\% and 99.1\%. azllm's
+4-bit keys, rotated and quantized in blocks of 32 with one FP16 scale, are five times cheaper
+than NInfer's $E_8$-lattice keys.
+
+\begin{figure}[t]
+  \centering
+  \input{figures/kvppl}
+  \caption{Cost of each KV format on code: relative change of the mean NLL per token against
+           the most precise format of the same engine (NInfer: bf16; llama.cpp: q8\_0/q8\_0;
+           azllm: q8), 64K windows with the last 32K positions scored. Lower is better.}
+  \label{fig:kvppl}
+\end{figure}

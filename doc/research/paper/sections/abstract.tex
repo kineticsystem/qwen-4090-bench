@@ -1,0 +1,16 @@
+\begin{abstract}
+We study how fast, and with how much context, a dense 27B-parameter hybrid model can be served
+to a single user on one 24\,GB RTX~4090 without losing precision. Starting from a tuned
+llama.cpp setup (89.6\,tok/s, 128K context), we compare three specialized engines on
+Qwen3.8-27B: OpenJet, a persistent megakernel that reads the same GGUF file; NInfer, a dedicated
+engine with its own 4/5-bit weights; and azllm, a tqLLM fork that reads rotated 4.3-bit weights.
+Both NInfer and azllm draft with DFlash2, a block-diffusion model. azllm decodes at
+228.6\,tok/s on short prompts (2.55$\times$), up to 3.1$\times$ on code, and 2.47$\times$ in
+thinking mode; NInfer reaches 1.85$\times$ and OpenJet 1.52$\times$. On the same 98K positions
+of code, azllm's weights lose 0.46\% in log-likelihood against the baseline's and NInfer's
+1.78\%, and GSM8K and HumanEval stay within the noise of greedy decoding. A capacity map over KV
+formats, drafters and the vision tower, verified by filling each context with real source code,
+shows that the model's full 262{,}144-token window fits with vision in two engines. A 4-bit KV
+cache costs 0.16\% (azllm) to 0.82\% (NInfer) in log-likelihood on code, an effect invisible to
+exact recall of code at 252K tokens. We release launcher scripts for every configuration.
+\end{abstract}

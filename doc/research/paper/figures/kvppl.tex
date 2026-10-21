@@ -1,0 +1,17 @@
+\begin{tikzpicture}
+  \begin{axis}[
+      ybar, width=\columnwidth, height=5.4cm, bar width=11pt,
+      ymin=-0.1, ymax=1.0, ytick={0,0.25,0.5,0.75,1},
+      ylabel={$\Delta$ NLL per token (\%)}, ylabel style={font=\small},
+      symbolic x coords={ni8,nr8,ne8,lt4,a84,a44},
+      xtick={ni8,nr8,ne8,lt4,a84,a44}, xticklabels={NInfer\\int8, NInfer\\rk8v4, NInfer\\E8, llama.cpp\\q8/turbo4, azllm\\q8/q4, azllm\\q4/q4},
+      xticklabel style={font=\scriptsize, align=center},
+      yticklabel style={font=\scriptsize},
+      enlarge x limits=0.1, clip=false,
+      point meta=explicit symbolic, nodes near coords, nodes near coords style={font=\tiny},
+      every axis plot/.append style={draw=none, bar shift=0pt}, ymajorgrids, grid style={gray!20}]
+    \addplot[fill=cnin] coordinates {(ni8,-0.025) [$-$0.03] (nr8,0.126) [0.13] (ne8,0.823) [0.82]};
+    \addplot[fill=cbase] coordinates {(lt4,0.113) [0.11]};
+    \addplot[fill=cgood] coordinates {(a84,0.042) [0.04] (a44,0.163) [0.16]};
+  \end{axis}
+\end{tikzpicture}

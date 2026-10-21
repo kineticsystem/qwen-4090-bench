@@ -1,0 +1,53 @@
+\section{Introduction}
+\label{sec:intro}
+
+A dense 27-billion-parameter model quantized to about 4.5 bits per weight occupies roughly
+17\,GB, which leaves about 6\,GB of a 24\,GB consumer GPU for the key--value (KV) cache, the
+activations and the engine's own buffers. At batch size one, decoding is bound by memory
+bandwidth: every generated token reads every weight once. On an RTX~4090 (1008\,GB/s), this
+puts plain autoregressive decoding of such a model at about 50--60 tokens per second, whatever
+the engine.
+
+Two levers move this limit without changing the weights. \emph{Speculative decoding}
+ lets a cheap drafter propose several tokens that the target model
+verifies in one forward pass, which costs about as much memory traffic as a single token. And
+\emph{engine specialization} removes the overheads a general engine carries: kernel launches,
+host round trips and generic memory layouts. A third lever, \emph{KV-cache quantization}, does
+not make short prompts faster, but decides how much context fits in the memory that is left.
+
+This report studies the three levers on one concrete case: Qwen3.8-27B, a hybrid
+Gated-DeltaNet/attention model with a built-in multi-token-prediction (MTP) head, served for a
+single user who mostly writes code, on one RTX~4090. We start from a tuned llama.cpp setup and
+ask three questions:
+
+\begin{enumerate}
+  \item How much faster can single-stream decoding get, at unchanged accuracy?
+  \item How much context fits on the card, with and without the vision encoder, without the
+        server failing?
+  \item What does a 4-bit KV cache cost in precision on code, compared with the 8-bit keys
+        and 4-bit values of the starting setup?
+\end{enumerate}
+
+We compare four engines: llama.cpp with the TurboQuant KV types \citep{llamacpp,turboquant}
+(the baseline), the OpenJet persistent megakernel \citep{openjet}, the RTX~4090 port of NInfer
+\citep{ninfer,ninfer4090} with both MTP and the DFlash2 block-diffusion drafter,
+ and azllm \citep{azllm}, a fork of tqLLM \citep{tqllm} that reads
+rotated TurboQuant weights. All measurements come from one machine, in throw-away containers,
+with scripts that are part of this work.
+
+\paragraph{Contributions.}
+\begin{itemize}
+  \item A like-for-like measurement of decode speed, accuracy and context capacity for four
+        engines serving the same model on the same GPU, including thinking mode and a 29K-token
+        prompt.
+  \item A comparison of three 4-bit weight files on exactly the same code positions, showing
+        that a rotated 4.3-bit format predicts code within 0.5\% of a 5.2-bit k-quant file.
+  \item A capacity map: the largest context each configuration (engine, KV type, drafter,
+        vision on or off) accepts, each verified by filling the context with real code and
+        querying it.
+  \item A measurement of the cost of KV-cache quantization on code perplexity at 64K and 128K
+        context, and on exact recall of code at up to 252K tokens.
+  \item Ready-to-run server scripts for every configuration; the recommended one serves
+        2.5$\times$ faster than the baseline with 1.9$\times$ its context and vision, and the
+        full 262K window with a 4-bit KV cache.
+\end{itemize}

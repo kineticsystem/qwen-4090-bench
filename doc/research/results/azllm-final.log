@@ -1,0 +1,56 @@
+#### draft sweep (q8/q4, 128K, text)
+== azllm-drafts5: mean 205.6 tok/s, median 214.9 tok/s
+== azllm-drafts6: mean 213.1 tok/s, median 218.8 tok/s
+== azllm-drafts8: mean 230.1 tok/s, median 241.0 tok/s
+== azllm-drafts10: mean 230.7 tok/s, median 242.4 tok/s
+#### final launcher: speed, accuracy, vision, tool call
+qwen-azllm ready on http://localhost:8084/v1
+== prof-azllm-final: mean 228.6 tok/s, median 239.4 tok/s
+== prof-azllm-final: mean 208.4 tok/s, median 216.0 tok/s (thinking)
+== prof-azllm-final-long: mean 150.1 tok/s, median 147.6 tok/s (29K prompt)
+prof-azllm-final: GSM8K 95.2% (250)
+prof-azllm-final: HumanEval 95.7% (164)  [599s]
+prof-azllm-final vision: This image displays a user interface for configuring a Logitech Dual Action game controller, showing its current axis and button states with all axes 
+finish: tool_calls | calls: [('get_weather', '{"city": "Paris"}')]
+#### full context
+==========
+== CUDA ==
+==========
+azllm-q8q4-242k-vision: 758400 chars -> 219155 prompt tokens, prefill 147.1s
+azllm-q8q4-242k-vision: 807851 chars -> 233725 prompt tokens, prefill 14.7s
+  depth  12% llm_arch_is_hybrid               lines 100% sim 1.00 ttft    0.6s decode 151.8 tok/s
+  depth  12% llm_arch_supports_sm_tensor      lines 100% sim 1.00 ttft    0.6s decode 148.9 tok/s
+  depth  17% llm_chat_detect_template         lines  87% sim 0.87 ttft    0.6s decode 102.8 tok/s
+  depth  28% kv_stream_switch_phase           lines 100% sim 1.00 ttft    0.6s decode 104.8 tok/s
+  depth  38% extract_layer_inputs             lines 100% sim 1.00 ttft    0.6s decode 120.8 tok/s
+  depth  47% parse_hex                        lines 100% sim 1.00 ttft    0.6s decode 173.5 tok/s
+  depth  54% llm_sched_needs_moe_f16_act_guard lines 100% sim 1.00 ttft    0.6s decode 154.3 tok/s
+  depth  65% build_inp_out_ids                lines 100% sim 1.00 ttft    0.6s decode 103.4 tok/s
+  depth  72% n_embd_r                         lines 100% sim 1.00 ttft    0.6s decode 142.6 tok/s
+  depth  82% clear_compressed                 lines 100% sim 1.00 ttft    0.6s decode 105.1 tok/s
+  depth  87% set_input_cell_pos               lines 100% sim 1.00 ttft    0.6s decode 155.8 tok/s
+  depth  96% kv_stream_adapt                  lines 100% sim 1.00 ttft    0.6s decode 121.5 tok/s
+== azllm-q8q4-242k-vision @ 233777 tokens: exact 92%, lines 99%, decode 132.1 tok/s
+== azllm-q8q4-242k-vision: server alive
+== azllm-q8q4-242k-vision: vision: This image displays a user interface for configuring a Logitech Dual Action game controller, showing its current axis and button states with all axes 
+==========
+== CUDA ==
+==========
+azllm-q4q4-262k-vision: 822400 chars -> 237735 prompt tokens, prefill 163.0s
+azllm-q4q4-262k-vision: 875708 chars -> 252340 prompt tokens, prefill 15.2s
+  depth  11% llm_arch_is_hybrid               lines 100% sim 1.00 ttft    0.7s decode 188.7 tok/s
+  depth  13% split_simple                     lines 100% sim 1.00 ttft    0.7s decode 217.6 tok/s
+  depth  25% resolve_fused_ops                lines 100% sim 1.00 ttft    0.6s decode 157.2 tok/s
+  depth  31% encode                           lines 100% sim 1.00 ttft    0.6s decode 130.7 tok/s
+  depth  38% state_seq_get_data               lines 100% sim 1.00 ttft    0.6s decode 184.8 tok/s
+  depth  46% parse_rule                       lines 100% sim 1.00 ttft    0.6s decode 165.7 tok/s
+  depth  55% reset                            lines 100% sim 1.00 ttft    0.7s decode 143.5 tok/s
+  depth  60% build_inp_out_ids                lines 100% sim 1.00 ttft    0.7s decode 132.6 tok/s
+  depth  67% n_embd_s_ingredient              lines 100% sim 1.00 ttft    0.6s decode 150.1 tok/s
+  depth  80% set_input_cell_pos               lines 100% sim 1.00 ttft    0.6s decode 168.7 tok/s
+  depth  87% update                           lines 100% sim 1.00 ttft    0.6s decode 160.5 tok/s
+  depth  98% init_batch                       lines 100% sim 1.00 ttft    0.7s decode 141.2 tok/s
+== azllm-q4q4-262k-vision @ 252392 tokens: exact 100%, lines 100%, decode 161.8 tok/s
+== azllm-q4q4-262k-vision: server alive
+== azllm-q4q4-262k-vision: vision: This image displays a Logitech Dual Action device configuration interface, showing two analog stick controls, six axis bars all at zero, and a grid of
+qwen-azllm stopped

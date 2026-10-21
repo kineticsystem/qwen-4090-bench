@@ -1,0 +1,19 @@
+% Renders one figure of the paper on its own, for REPORT.md:
+% pdflatex "\def\fig{speed}\input{figures/standalone}"
+\documentclass[border=6pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\definecolor{cbase}{HTML}{7F7F7F}
+\definecolor{cjet}{HTML}{E1812C}
+\definecolor{cnin}{HTML}{3274A1}
+\definecolor{cnin2}{HTML}{8CB5D6}
+\definecolor{cgood}{HTML}{3A923A}
+\pagecolor{white}
+\begin{document}
+\setlength{\columnwidth}{8.6cm}\setlength{\textwidth}{18cm}
+\input{figures/\fig}
+\end{document}

@@ -1,0 +1,21 @@
+\begin{tikzpicture}
+    \begin{axis}[
+        xbar, width=0.68\columnwidth, height=6.9cm, bar width=7pt,
+        xmin=0, xmax=265, xlabel={decode speed (tok/s)},
+        symbolic y coords={b2,b3,b4,b5,b6,oj,nm3,nm4,nm3e,nd7,az},
+        ytick={b2,b3,b4,b5,b6,oj,nm3,nm4,nm3e,nd7,az}, y dir=reverse,
+        yticklabels={llama.cpp MTP 2 (baseline), llama.cpp MTP 3, llama.cpp MTP 4,
+                     llama.cpp MTP 5, llama.cpp MTP 6, OpenJet MTP 4, NInfer MTP 3 int8,
+                     NInfer MTP 4 int8, NInfer MTP 3 E8, NInfer DFlash2 7 E8, azllm DFlash2 7 q8/q4},
+        yticklabel style={font=\scriptsize}, xticklabel style={font=\scriptsize},
+        xlabel style={font=\small},
+        nodes near coords, nodes near coords style={font=\scriptsize},
+        every axis plot/.append style={draw=none, bar shift=0pt},
+        xmajorgrids, grid style={gray!20}]
+      \addplot[fill=cbase] coordinates {(89.6,b2) (98.3,b3) (105.8,b4) (106.6,b5) (104.7,b6)};
+      \addplot[fill=cjet] coordinates {(134.7,oj)};
+      \addplot[fill=cnin2] coordinates {(137.2,nm3) (139.5,nm4) (140.5,nm3e)};
+      \addplot[fill=cnin] coordinates {(166.9,nd7)};
+      \addplot[fill=cgood] coordinates {(228.6,az)};
+    \end{axis}
+  \end{tikzpicture}

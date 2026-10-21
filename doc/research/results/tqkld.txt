@@ -1,0 +1,26 @@
+chunk  2 dumped
+chunk  3 dumped
+q8: == CUDA ==
+q8: tqllm: prefill GEMMs in int8 (per-row x per-token scales; --prefill-int8 off for FP16)
+q8: tqllm: prefill TQ4: batched pass 25.3 ms / 32 cols, native 0.353 ms/col, dequant 117.1 + 0.119 ms/col -> native up to 468 columns
+q8: chunk  0  KLD 0.00000  top1 1.0000
+q8: chunk  1  KLD 0.00000  top1 1.0000
+q8: chunk  2  KLD 0.00000  top1 1.0000
+q8: chunk  3  KLD 0.00000  top1 1.0000
+q8: positions 131072  mean KLD 0.00000  median 0.00000  p99 0.0000  p99.9 0.0000  top1 1.0000  PPL 1.4646
+q8/q4: == CUDA ==
+q8/q4: tqllm: prefill GEMMs in int8 (per-row x per-token scales; --prefill-int8 off for FP16)
+q8/q4: tqllm: prefill TQ4: batched pass 26.8 ms / 32 cols, native 0.355 ms/col, dequant 117.6 + 0.113 ms/col -> native up to 449 columns
+q8/q4: chunk  0  KLD 0.00047  top1 0.9977
+q8/q4: chunk  1  KLD 0.00090  top1 0.9929
+q8/q4: chunk  2  KLD 0.00087  top1 0.9930
+q8/q4: chunk  3  KLD 0.00106  top1 0.9947
+q8/q4: positions 131072  mean KLD 0.00083  median 0.00002  p99 0.0111  p99.9 0.0466  top1 0.9946  PPL 1.4648
+q4/q4: == CUDA ==
+q4/q4: tqllm: prefill GEMMs in int8 (per-row x per-token scales; --prefill-int8 off for FP16)
+q4/q4: tqllm: prefill TQ4: batched pass 25.2 ms / 32 cols, native 0.350 ms/col, dequant 117.2 + 0.117 ms/col -> native up to 468 columns
+q4/q4: chunk  0  KLD 0.00110  top1 0.9959
+q4/q4: chunk  1  KLD 0.00215  top1 0.9904
+q4/q4: chunk  2  KLD 0.00208  top1 0.9889
+q4/q4: chunk  3  KLD 0.00239  top1 0.9901
+q4/q4: positions 131072  mean KLD 0.00193  median 0.00004  p99 0.0282  p99.9 0.1041  top1 0.9913  PPL 1.4655

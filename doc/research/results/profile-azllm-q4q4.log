@@ -1,0 +1,7 @@
+qwen-azllm ready on http://localhost:8084/v1
+== prof-azllm-q4q4-262k: mean 228.8 tok/s, median 240.6 tok/s
+== prof-azllm-q4q4-262k: mean 195.1 tok/s, median 199.4 tok/s (thinking)
+== prof-azllm-q4q4-262k-long: mean 145.6 tok/s, median 153.5 tok/s (29K prompt)
+prof-azllm-q4q4-262k: GSM8K 96.8% (250)
+prof-azllm-q4q4-262k: HumanEval 95.7% (164)  [579s]
+prof-azllm-q4q4-262k vision: This image displays a Logitech Dual Action device configuration interface, showing two analog stick controls, six axis bars all at zero, and a grid of

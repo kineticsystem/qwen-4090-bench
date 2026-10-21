@@ -1,0 +1,68 @@
+# llama-swap: one OpenAI-compatible endpoint, http://127.0.0.1:8085/v1, in front of the
+# Qwen3.8-27B servers of scripts/serve. A request names one of the models below; llama-swap
+# stops the server that is running (only one fits on a 24 GB card), starts that one on a
+# port of its own and forwards the request.
+#
+# This file is the one list of models: ./opencode-config.sh reads it back from
+# /v1/models, names and context sizes (metadata) included, to configure opencode.
+
+# A server needs 1 to 2 minutes to load its model.
+healthCheckTimeout: 400
+# llama-swap's own log, the model servers' output and one line per request, so that
+# ./docker/dock.sh logs shows everything.
+logToStdout: both
+# While a model loads, tell the client in the reasoning field: opencode shows the load
+# instead of an answer that seems stuck.
+sendLoadingState: true
+# Unload a model after 30 idle minutes, to free the GPU.
+globalTTL: 1800
+# A server can take a few seconds to free 22 GB of GPU memory.
+unloadTimeout: 30
+startPort: 5800
+
+macros:
+  serve: /home/developer/ws/scripts/serve
+
+# useModelName: every server answers to Qwen3.8-27B (NInfer accepts no other name).
+models:
+  azllm:
+    name: "azllm, 242K, vision (fastest)"
+    cmd: ${serve}/azllm.sh --port ${PORT}
+    useModelName: Qwen3.8-27B
+    metadata: {context: 241664, output: 16384}
+
+  azllm-256k:
+    name: "azllm, 256K, vision, 4-bit KV"
+    cmd: ${serve}/azllm.sh --kv q4/q4 --ctx 262144 --port ${PORT}
+    useModelName: Qwen3.8-27B
+    metadata: {context: 262144, output: 16384}
+
+  ninfer-long:
+    name: "NInfer long, 256K, vision"
+    cmd: ${serve}/ninfer.sh long --port ${PORT}
+    useModelName: Qwen3.8-27B
+    metadata: {context: 262144, output: 16384}
+
+  ninfer-precise:
+    name: "NInfer precise, 200K, vision"
+    cmd: ${serve}/ninfer.sh precise --port ${PORT}
+    useModelName: Qwen3.8-27B
+    metadata: {context: 204800, output: 16384}
+
+  ninfer-fast:
+    name: "NInfer fast, 192K, vision"
+    cmd: ${serve}/ninfer.sh fast --port ${PORT}
+    useModelName: Qwen3.8-27B
+    metadata: {context: 192512, output: 16384}
+
+  openjet:
+    name: "OpenJet, 128K, text only"
+    cmd: ${serve}/openjet.sh --port ${PORT}
+    useModelName: Qwen3.8-27B
+    metadata: {context: 131072, output: 16384}
+
+  baseline:
+    name: "Baseline llama.cpp, 128K, vision"
+    cmd: ${serve}/baseline.sh --port ${PORT}
+    useModelName: Qwen3.8-27B
+    metadata: {context: 128000, output: 16384}

@@ -1,0 +1,46 @@
+\section{Background}
+\label{sec:background}
+
+\paragraph{The model.}
+Qwen3.8-27B interleaves Gated DeltaNet layers, whose state is a fixed-size
+matrix per head, with full-attention layers, whose KV cache grows with the context. Only the
+attention layers pay per-token memory, which is why a 27B model can hold a 256K-token context in
+a few gigabytes. The recurrent state, however, cannot simply be truncated when a draft token is
+rejected: engines must either snapshot it or replay the accepted tokens.
+
+\paragraph{Speculative decoding.}
+A drafter proposes $k$ tokens; the target model scores all of them in one pass and keeps the
+longest prefix that matches its own choice (greedy) or passes a rejection test (sampling), so
+the output distribution is unchanged. The speed-up depends on the
+mean number of tokens accepted per pass and on how cheap the drafter and the $(k{+}1)$-token
+verification are. Qwen3.8-27B ships an MTP head that drafts one token per
+step from the target's last hidden state. DFlash2 is a separate small
+block-diffusion model that drafts a whole block in one pass, conditioned on the target's hidden
+states, and is accepted further on predictable text such as code.
+
+\paragraph{KV-cache quantization.}
+The KV cache can be stored in fewer bits than the activations that produce it.
+ Keys are more sensitive than values, since an error in a key changes
+every attention weight it takes part in. Rotations spread outliers across channels before
+quantization, and lattice codes such as $E_8$
+quantize eight values jointly at a lower error than scalar rounding at the same rate.
+Table~\ref{tab:kvtypes} lists the formats compared in this work.
+
+\begin{table}[t]
+  \centering
+  \caption{KV-cache formats compared. Bits are per element, scales excluded.}
+  \label{tab:kvtypes}
+  \resizebox{\columnwidth}{!}{%
+  \begin{tabular}{@{}llccl@{}}
+    \toprule
+    Engine & Format & K bits & V bits & Encoding \\
+    \midrule
+    llama.cpp & \texttt{q8\_0}/\texttt{q8\_0} & 8 & 8 & blocks of 32, one scale \\
+    llama.cpp & \texttt{q8\_0}/\texttt{turbo4} & 8 & 4 & TurboQuant values (baseline) \\
+    OpenJet & \texttt{q8} & 8 & 8 & as \texttt{q8\_0} \\
+    NInfer & \texttt{int8} & 8 & 8 & groups of 64 \\
+    NInfer & \texttt{rk8v4} & 8 & 4 & rotated keys, groups of 64 \\
+    NInfer & \texttt{rk4v4-e8} & 4 & 4 & rotated, $E_8$ lattice keys \\
+    \bottomrule
+  \end{tabular}}
+\end{table}

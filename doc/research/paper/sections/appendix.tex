@@ -1,0 +1,44 @@
+\section{Reproducing the Measurements}
+\label{app:repro}
+
+All paths are relative to \texttt{\textasciitilde/repo/qwen-research}. Each engine runs in a
+throw-away container; one server at a time.
+
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabular}{@{}lp{0.74\textwidth}@{}}
+    \toprule
+    What & Command \\
+    \midrule
+    Start a server (port 8084) & \texttt{./qwen-baseline.sh start}, \texttt{./qwen-openjet.sh start}, \\
+                               & \texttt{./qwen-ninfer.sh start long|fast|precise}, \texttt{./qwen-azllm.sh start [--kv q4/q4 --ctx 262144]} \\
+    Short-prompt speed & \texttt{bench/bench.py --url http://127.0.0.1:8084 --model Qwen3.8-27B --label X [--think] [--greedy]} \\
+    29K-token prompt & \texttt{bench/bench.py... --long 100000} \\
+    GSM8K and HumanEval & \texttt{bench/evalacc.py --url... --label X} \\
+    Full-context recall & \texttt{bench/longctx.py --url... --tokens N --n-questions 12 --lines 16} \\
+    NInfer capacity & \texttt{bench/probe-ninfer.sh "label|--kv-dtype rk4v4-e8 --spec mtp --draft-tokens 3"} \\
+    OpenJet capacity & \texttt{DOCKER\_ENV="-e MK\_PF\_CAP=512" bench/probe-openjet.sh "label|--kv q8 -d 4"} \\
+    Code perplexity, NInfer & \texttt{bench/ppl-ninfer.sh 65536 32768 int8 rk8v4 rk4v4-e8} \\
+    Code perplexity, llama.cpp & \texttt{bench/ppl-llama.sh 65536 q8\_0/q8\_0 q8\_0/turbo4} \\
+    azllm capacity & \texttt{bench/probe-tqllm.sh "label|--kv q8/q4"}, then \texttt{bench/check-tqllm-fit.sh} \\
+    KV cost, azllm & \texttt{bench/kld-tqllm.sh q8 q8/q4 q4/q4} \\
+    Weight comparison & \texttt{bench/weights-compare.sh}, then \texttt{python3 bench/weights-compare.py} \\
+    Temperature guard & \texttt{nohup bench/thermal-guard.sh \&} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\noindent For NInfer, \texttt{bench/bench.py}, \texttt{evalacc.py} and \texttt{longctx.py} take
+\texttt{--no-think top}: NInfer rejects \texttt{chat\_template\_kwargs} and reads
+\texttt{enable\_thinking} and \texttt{reasoning\_effort} as top-level request fields.
+Raw results are in \texttt{results/}: \texttt{bench\_summary.jsonl} (speed),
+\texttt{accuracy.jsonl}, \texttt{longctx.jsonl} (with every answer),
+\texttt{ninfer-capacity.txt}, \texttt{openjet-capacity.txt}, \texttt{tqllm-capacity.txt},
+\texttt{tqllm-fit.txt}, \texttt{ppl-ninfer.txt}, \texttt{ppl-llama.txt}, \texttt{tqkld.txt},
+\texttt{weights-compare-table.txt} and \texttt{thermal.log}.
+
+\paragraph{A note on stability.} The host reset once without any GPU error in the kernel log,
+during back-to-back compute-bound perplexity runs at the card's stock 450\,W limit. The scripts
+now pause 60\,s between heavy runs and a guard pauses the containers above 83\,$^\circ$C on the
+GPU or 90\,$^\circ$C on the CPU; no further reset occurred and the guard never triggered.

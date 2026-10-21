@@ -1,0 +1,42 @@
+==========
+== CUDA ==
+==========
+ninfer-mtp3-int8-100k: 320000 chars -> 89382 prompt tokens, prefill 49.6s
+ninfer-mtp3-int8-100k: 352643 chars -> 98060 prompt tokens, prefill 55.9s
+  depth   5% llama_adapter_meta_val_str_by_index lines 100% sim 1.00 ttft    0.3s decode 126.7 tok/s
+  depth  28% llm_arch_is_recurrent            lines 100% sim 1.00 ttft    0.3s decode 109.9 tok/s
+  depth  33% split_simple                     lines 100% sim 1.00 ttft    0.3s decode 135.4 tok/s
+  depth  39% llm_chat_detect_template         lines 100% sim 1.00 ttft    0.3s decode 120.5 tok/s
+  depth  61% resolve_fused_ops                lines 100% sim 1.00 ttft    0.3s decode 137.5 tok/s
+  depth  74% set_decode_phase                 lines 100% sim 1.00 ttft    0.3s decode 112.5 tok/s
+  depth  81% decode                           lines 100% sim 1.00 ttft    0.3s decode 127.8 tok/s
+  depth  94% state_seq_get_size               lines 100% sim 1.00 ttft    0.3s decode 129.1 tok/s
+== ninfer-mtp3-int8-100k @ 98109 tokens: exact 100%, lines 100%, decode 124.9 tok/s
+==========
+== CUDA ==
+==========
+ninfer-mtp3-rk8v4-100k: 320000 chars -> 89382 prompt tokens, prefill 51.2s
+ninfer-mtp3-rk8v4-100k: 352643 chars -> 98060 prompt tokens, prefill 57.7s
+  depth   5% llama_adapter_meta_val_str_by_index lines 100% sim 1.00 ttft    0.4s decode 127.1 tok/s
+  depth  28% llm_arch_is_recurrent            lines 100% sim 1.00 ttft    0.3s decode 110.7 tok/s
+  depth  33% split_simple                     lines 100% sim 1.00 ttft    0.3s decode 135.8 tok/s
+  depth  39% llm_chat_detect_template         lines 100% sim 1.00 ttft    0.3s decode 121.2 tok/s
+  depth  61% resolve_fused_ops                lines 100% sim 1.00 ttft    0.3s decode 130.6 tok/s
+  depth  74% set_decode_phase                 lines 100% sim 1.00 ttft    0.3s decode 112.9 tok/s
+  depth  81% decode                           lines 100% sim 1.00 ttft    0.3s decode 128.2 tok/s
+  depth  94% state_seq_get_size               lines 100% sim 1.00 ttft    0.3s decode 129.4 tok/s
+== ninfer-mtp3-rk8v4-100k @ 98109 tokens: exact 100%, lines 100%, decode 124.5 tok/s
+==========
+== CUDA ==
+==========
+ninfer-mtp3-e8-100k: 320000 chars -> 89382 prompt tokens, prefill 51.8s
+ninfer-mtp3-e8-100k: 352643 chars -> 98060 prompt tokens, prefill 58.3s
+  depth   5% llama_adapter_meta_val_str_by_index lines 100% sim 1.00 ttft    0.4s decode 134.7 tok/s
+  depth  28% llm_arch_is_recurrent            lines 100% sim 1.00 ttft    0.3s decode 112.9 tok/s
+  depth  33% split_simple                     lines 100% sim 1.00 ttft    0.3s decode 138.9 tok/s
+  depth  39% llm_chat_detect_template         lines 100% sim 1.00 ttft    0.3s decode 123.7 tok/s
+  depth  61% resolve_fused_ops                lines 100% sim 1.00 ttft    0.3s decode 127.2 tok/s
+  depth  74% set_decode_phase                 lines 100% sim 1.00 ttft    0.3s decode 115.6 tok/s
+  depth  81% decode                           lines 100% sim 1.00 ttft    0.4s decode 131.3 tok/s
+  depth  94% state_seq_get_size               lines 100% sim 1.00 ttft    0.3s decode 132.6 tok/s
+== ninfer-mtp3-e8-100k @ 98109 tokens: exact 100%, lines 100%, decode 127.1 tok/s

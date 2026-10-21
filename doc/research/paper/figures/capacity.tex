@@ -1,0 +1,31 @@
+\begin{tikzpicture}
+  \begin{axis}[
+      xbar, width=0.66\textwidth, height=9.4cm, bar width=5pt,
+      xmin=0, xmax=440, xlabel={largest context that starts (thousand tokens)},
+      xlabel style={font=\small},
+      symbolic y coords={oj,ojc,ni8m,ni8d,nr8m,nr8d,ne8m,ne8d,ne8n,a8,a84,a44},
+      ytick=data, y dir=reverse,
+      yticklabels={OpenJet q8 MTP 4, OpenJet q8 MTP 4 (512-token prefill chunks),
+                   NInfer int8 MTP 3, NInfer int8 DFlash2 7, NInfer rk8v4 MTP 3,
+                   NInfer rk8v4 DFlash2 7, NInfer E8 MTP 3, NInfer E8 DFlash2 7,
+                   NInfer E8 no drafter, azllm q8 DFlash2 7, azllm q8/q4 DFlash2 7, azllm q4/q4 DFlash2 7},
+      yticklabel style={font=\scriptsize}, xticklabel style={font=\scriptsize},
+      legend style={font=\scriptsize, at={(0.5,1.02)}, anchor=south, draw=none,
+                    legend columns=2, /tikz/every even column/.append style={column sep=8pt}},
+      legend cell align=left,
+      point meta=explicit symbolic,
+      nodes near coords, nodes near coords style={font=\tiny},
+      every axis plot/.append style={draw=none}, xmajorgrids, grid style={gray!20},
+      extra x ticks={262.144}, extra x tick labels={native 262K},
+      extra x tick style={grid=major, major grid style={cgood, thick, dashed},
+                          tick label style={text=cgood, font=\scriptsize, yshift=-8pt}}]
+    \addplot[fill=cnin] coordinates {(131.1,oj) [131K] (147.5,ojc) [147K] (172.0,ni8m) [172K]
+        (114.7,ni8d) [115K] (229.4,nr8m) [229K] (151.6,nr8d) [152K] (335.9,ne8m) [336K]
+        (225.3,ne8d) [225K] (409.6,ne8n) [410K]
+        (184.3,a8) [184K] (254.0,a84) [254K] (262.1,a44) [262K+]};
+    \addplot[fill=cnin2] coordinates {(0,oj) [] (0,ojc) [] (155.6,ni8m) [156K] (98.3,ni8d) [98K]
+        (208.9,nr8m) [209K] (131.1,nr8d) [131K] (307.2,ne8m) [307K] (192.5,ne8d) [193K] (0,ne8n) []
+        (155.6,a8) [156K] (241.7,a84) [242K] (262.1,a44) [262K+]};
+    \legend{text only, with vision}
+  \end{axis}
+\end{tikzpicture}
