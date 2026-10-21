@@ -2,11 +2,20 @@
 
 [![CI](https://github.com/kineticsystem/qwen-4090-bench/actions/workflows/ci.yml/badge.svg)](https://github.com/kineticsystem/qwen-4090-bench/actions/workflows/ci.yml)
 
-A study of how fast, and how precisely, a Qwen model runs on one **NVIDIA GeForce RTX 4090**. We took Qwen3.8-27B, in the quantized versions that each engine reads, and measured four inference engines against llama.cpp: decode speed, accuracy, the largest context that fits in 24 GB, with and without vision, and what a smaller KV cache costs in precision.
+This repository is a benchmark. We wanted to know how to run a large language model on our own computer, with one **NVIDIA GeForce RTX 4090** (24 GB), as fast as possible and without losing quality.
 
-The best engine, azllm, is 2.5 times faster than llama.cpp, as precise, and fits the model's full 256K context with vision. The full results are in the [research report](doc/research/REPORT.md) and the [paper](doc/research/Serving-Qwen3.8-27B-on-a-single-RTX-4090.pdf).
+We used one model, **Qwen3.8-27B**, and compared four programs that run it, called *inference engines*:
 
-The repository also packages every configuration we measured, ready to use: one Docker container with the four engines and [llama-swap](https://github.com/mostlygeek/llama-swap) in front of them, on one OpenAI-compatible endpoint. A client picks a model by name, and llama-swap starts the engine that serves it. Any OpenAI-compatible client works; we used the coding agent [opencode](https://opencode.ai), and provide a script that configures it.
+- **llama.cpp**, the usual choice, as the reference: the baseline;
+- **OpenJet**, **NInfer** and **azllm**, three engines written specially for this family of models.
+
+At full precision the model does not fit in 24 GB, so each engine uses a compressed copy of it, a *quantized* model, with about 4 to 5 bits per weight instead of 16. llama.cpp and OpenJet read the same file; NInfer and azllm each read a format of their own, so their copies differ slightly.
+
+For each engine we measured the speed, the accuracy, the largest context that fits on the card, with and without the model's vision, and how much precision is lost by compressing the memory of the context, the KV cache.
+
+The best engine, azllm, is 2.5 times faster than llama.cpp, as precise, and fits the model's full 256K context with vision. The details are in the [research report](doc/research/REPORT.md) and the [paper](doc/research/Serving-Qwen3.8-27B-on-a-single-RTX-4090.pdf).
+
+The repository also packages every configuration we measured, ready to use: one Docker container with the four engines and [llama-swap](https://github.com/mostlygeek/llama-swap), which starts the engine a request asks for. Any program that speaks the OpenAI API can use it. We used the coding agent [opencode](https://opencode.ai), and provide a script that configures it.
 
 > [!IMPORTANT]
 > This project is built and tuned for the RTX 4090 (24 GB, `sm_89`) only. The engines are compiled for that GPU, and the context sizes fill its memory exactly.
