@@ -2,9 +2,9 @@
 
 [![CI](https://github.com/kineticsystem/qwen-4090-bench/actions/workflows/ci.yml/badge.svg)](https://github.com/kineticsystem/qwen-4090-bench/actions/workflows/ci.yml)
 
-This repository is a benchmark. We wanted to know how to run a large language model on our own computer, with one **NVIDIA GeForce RTX 4090** (24 GB), as fast as possible and without losing quality.
+This repository is a benchmark. I wanted to know how to run a large language model on my own computer, with one **NVIDIA GeForce RTX 4090** (24 GB), as fast as possible and without losing quality.
 
-We used one model, **Qwen3.8-27B**, and compared four programs that run it, called *inference engines*:
+I used one model, **Qwen3.8-27B**, and compared four programs that run it, called *inference engines*:
 
 - **llama.cpp**, the usual choice, as the reference: the baseline;
 - **OpenJet**, **NInfer** and **azllm**, three engines written specially for this family of models.
@@ -13,11 +13,11 @@ We used one model, **Qwen3.8-27B**, and compared four programs that run it, call
 
 At full precision the model does not fit in 24 GB, so each engine uses a compressed copy of it, a *quantized* model, with about 4 to 5 bits per weight instead of 16. llama.cpp and OpenJet read the same file; NInfer and azllm each read a format of their own, so their copies differ slightly.
 
-For each engine we measured the speed, the accuracy, the largest context that fits on the card, with and without the model's vision, and how much precision is lost by compressing the memory of the context, the KV cache.
+For each engine I measured the speed, the accuracy, the largest context that fits on the card, with and without the model's vision, and how much precision is lost by compressing the memory of the context, the KV cache.
 
 The best engine, azllm, is 2.5 times faster than llama.cpp, as precise, and has the most context: 228K tokens with vision, while leaving 2 GB of the card free for the display. The details are in the [research report](doc/research/REPORT.md) and the [paper](doc/research/Serving-Qwen3.8-27B-on-a-single-RTX-4090.pdf).
 
-The repository also packages every configuration we measured, ready to use: one Docker container with the four engines and [llama-swap](https://github.com/mostlygeek/llama-swap), which starts the engine a request asks for. Any program that speaks the OpenAI API can use it. We used the coding agent [opencode](https://opencode.ai), and provide a script that configures it.
+The repository also packages every configuration I measured, ready to use: one Docker container with the four engines and [llama-swap](https://github.com/mostlygeek/llama-swap), which starts the engine a request asks for. Any program that speaks the OpenAI API can use it. I used the coding agent [opencode](https://opencode.ai), and provide a script that configures it.
 
 > [!IMPORTANT]
 > This project is built and tuned for the RTX 4090 (24 GB, `sm_89`) only. The engines are compiled for that GPU, and the context sizes fill its memory, less the room the display needs: see [Room for the Display](#room-for-the-display).
@@ -49,7 +49,7 @@ Decode speed on six short prompts, with the recommended sampling and thinking of
 | **`azllm`** | azllm | 148K | yes | **228.6 tok/s** | 95.2% | 95.7% |
 | **`azllm-228k`** | azllm | **228K** | yes | **228.8 tok/s** | 96.8% | 95.7% |
 
-**azllm is the best of the engines we tested.** It is 2.5 times faster than the baseline, about 300 tok/s on code, and as precise: its weights predict code within 0.5% of the baseline's, and the accuracy differences are within the noise of the tests.
+**azllm is the best of the engines I tested.** It is 2.5 times faster than the baseline, about 300 tok/s on code, and as precise: its weights predict code within 0.5% of the baseline's, and the accuracy differences are within the noise of the tests.
 
 The context is the one each model is served with here, which keeps 2 GB of the GPU free for the display: see [Room for the Display](#room-for-the-display). The research measured the speeds and scores at larger contexts, which left each engine only its default free memory, e.g. 768 MiB for azllm; the speed hardly depends on the context size.
 
@@ -136,7 +136,7 @@ The models are defined in [`scripts/llama-swap.yaml`](scripts/llama-swap.yaml). 
 
 ## Room for the Display
 
-The RTX 4090 of our computer also drives the display. The desktop holds 0.7 to 1 GB of its memory: Xorg, gnome-shell, the browser and the other windows, more as windows open. `nvidia-smi` lists them as type `G`.
+The RTX 4090 of my computer also drives the display. The desktop holds 0.7 to 1 GB of its memory: Xorg, gnome-shell, the browser and the other windows, more as windows open. `nvidia-smi` lists them as type `G`.
 
 azllm and NInfer reserve the memory of the whole context when they start, so a long conversation does not run out of it later: NInfer used the same memory after start, after a short request and after a 20,000-token prompt. What grows while an engine runs is the desktop, and azllm's cache of CUDA graphs, about 12 MB each. So each model is served with a context, in steps of 4,096 tokens, that starts with the desktop running and leaves at least 2 GB of the GPU free. The last column is the free memory after one short request, or for azllm after loading, as its own check reports it:
 
@@ -150,7 +150,7 @@ azllm and NInfer reserve the memory of the whole context when they start, so a l
 | `azllm` | 241,664 | 151,552 | 2.18 GB, azllm's report |
 | `azllm-228k` | 262,144 | 233,472 | 2.15 GB or more, azllm's report |
 
-azllm checks the room itself: [`scripts/serve/azllm.sh`](scripts/serve/azllm.sh) runs it with `-fitt 2048`, and with `-fitl off`, so it refuses a context that does not fit instead of starting with smaller buffers or a shorter context than we asked for. The other engines have no such setting: their contexts were measured with `nvidia-smi`, with at least 2,048 MiB free as the test, and the desktop moves the result by up to 400 MiB from one start to the next, so NInfer and OpenJet get one step below the last context that passed.
+azllm checks the room itself: [`scripts/serve/azllm.sh`](scripts/serve/azllm.sh) runs it with `-fitt 2048`, and with `-fitl off`, so it refuses a context that does not fit instead of starting with smaller buffers or a shorter context than I asked for. The other engines have no such setting: their contexts were measured with `nvidia-smi`, with at least 2,048 MiB free as the test, and the desktop moves the result by up to 400 MiB from one start to the next, so NInfer and OpenJet get one step below the last context that passed.
 
 The room costs some models more than others. `ninfer-fast` keeps a second KV cache for its DFlash2 drafter, and near the `azllm` limit what does not fit is the prefill buffers, not the KV cache. With room for a display, `azllm-228k` is the model with the most context.
 
