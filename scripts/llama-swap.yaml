@@ -31,6 +31,12 @@ models:
     useModelName: Qwen3.8-27B
     metadata: {context: 151552, output: 16384}
 
+  azllm-text:
+    name: "azllm, 148K, text only (for programs that send no images)"
+    cmd: ${serve}/azllm.sh --no-vision --port ${PORT}
+    useModelName: Qwen3.8-27B
+    metadata: {context: 151552, output: 16384}
+
   azllm-228k:
     name: "azllm, 228K, vision, 4-bit KV"
     cmd: ${serve}/azllm.sh --kv q4/q4 --ctx 233472 --port ${PORT}
