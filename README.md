@@ -35,6 +35,8 @@ The repository also packages every configuration we measured, ready to use: one 
 
 ## The Results
 
+![Decode speed and served context of the seven models on one RTX 4090: azllm is the fastest](doc/img/summary.png)
+
 Decode speed on six short prompts, with the recommended sampling and thinking off, and accuracy with greedy decoding. The first column is the name a client asks for:
 
 | Model | Engine | Context | Vision | Speed | GSM8K | HumanEval |
