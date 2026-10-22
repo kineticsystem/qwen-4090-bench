@@ -2,14 +2,14 @@
 
 [![CI](https://github.com/kineticsystem/qwen-4090-bench/actions/workflows/ci.yml/badge.svg)](https://github.com/kineticsystem/qwen-4090-bench/actions/workflows/ci.yml)
 
-<p align="center"><img src="doc/img/summary.svg" width="80%" alt="Decode speed and served context of the seven models on one RTX 4090: azllm is the fastest"></p>
-
 This repository is a benchmark. We wanted to know how to run a large language model on our own computer, with one **NVIDIA GeForce RTX 4090** (24 GB), as fast as possible and without losing quality.
 
 We used one model, **Qwen3.8-27B**, and compared four programs that run it, called *inference engines*:
 
 - **llama.cpp**, the usual choice, as the reference: the baseline;
 - **OpenJet**, **NInfer** and **azllm**, three engines written specially for this family of models.
+
+<p align="center"><img src="doc/img/summary.svg" width="80%" alt="Decode speed and served context of the seven models on one RTX 4090: azllm is the fastest"></p>
 
 At full precision the model does not fit in 24 GB, so each engine uses a compressed copy of it, a *quantized* model, with about 4 to 5 bits per weight instead of 16. llama.cpp and OpenJet read the same file; NInfer and azllm each read a format of their own, so their copies differ slightly.
 
