@@ -68,7 +68,42 @@ case "$1" in
         ;;
     start)
         check_engines
-        docker compose up --detach
+        # What scripts/start.sh refuses to start without, checked before the container
+        # starts at all.
+        if [ ! -x ../build/llama-swap/llama-swap ]; then
+            echo "llama-swap is not built: run ./docker/dock.sh build first." >&2
+            exit 1
+        fi
+        if [ -z "$(ls -A "${MODELS_DIR:-../models}" 2>/dev/null)" ]; then
+            echo "No models in ${MODELS_DIR:-../models}: run ./docker/dock.sh models first." >&2
+            exit 1
+        fi
+        # By its name: compose would also count the containers of dock.sh build and shell.
+        if [ "$(docker inspect -f '{{.State.Running}}' $SERVICE 2>/dev/null)" = true ]; then
+            echo "The container is already running: ./docker/dock.sh stop first to restart it." >&2
+            exit 1
+        fi
+        # Show the container's output until llama-swap says it is listening. The first
+        # start runs without the restart policy, so a container that fails exits once and
+        # its output ends there, with the reason; the policy is back however this ends, so
+        # that llama-swap starts with the computer.
+        since=$(date +%s)
+        docker compose up --no-start
+        docker update --restart no $SERVICE >/dev/null
+        trap 'docker update --restart unless-stopped $SERVICE >/dev/null' EXIT
+        docker compose start $SERVICE
+        echo -e "\nWaiting for llama-swap; Ctrl-C stops waiting, the container keeps running.\n"
+        # docker logs, not docker compose logs: compose ignores the kill after the loop.
+        ready=""
+        while IFS= read -r line; do
+            echo "$line"
+            [[ $line == *"llama-swap listening on"* ]] && { ready=1; break; }
+        done < <(docker logs --follow --since "$since" $SERVICE 2>&1)
+        kill $! 2>/dev/null || true
+        if [ -z "$ready" ]; then
+            echo -e "\nThe container did not start, see its output above: it is stopped." >&2
+            exit 1
+        fi
         echo -e "\nllama-swap is on http://127.0.0.1:${PORT:-8085}/v1"
         echo "Configure opencode with ./opencode-config.sh"
         echo "Follow the output with ./docker/dock.sh logs"

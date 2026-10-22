@@ -2,13 +2,14 @@
 # Add the models of the running qwen-4090-bench container to opencode, as the provider
 # "qwen-4090-bench": reads the list from llama-swap's /v1/models (names and context sizes
 # included, from scripts/llama-swap.yaml) and writes it into opencode's configuration,
-# after a backup. Run it again after changing scripts/llama-swap.yaml.
+# after a backup; only the last KEEP backups (default 5) are kept. Run it again after
+# changing scripts/llama-swap.yaml.
 #
 # Usage: ./opencode-config.sh [--default MODEL] [--config FILE]
 #   --default  also make qwen-4090-bench/MODEL opencode's default model, e.g. azllm
 #   --config   opencode configuration (default ~/.config/opencode/opencode.json)
 set -euo pipefail
-PORT=${PORT:-8085}
+PORT=${PORT:-8085} KEEP=${KEEP:-5}
 config=$HOME/.config/opencode/opencode.json default=""
 while [ $# -gt 0 ]; do case "$1" in
   --default) default=$2; shift 2 ;;
@@ -21,7 +22,14 @@ models=$(curl -sf http://127.0.0.1:$PORT/v1/models) || {
   exit 1
 }
 mkdir -p "$(dirname "$config")"
-[ -f "$config" ] && cp "$config" "$config.bak-$(date +%Y%m%d-%H%M%S)"
+if [ -f "$config" ]; then
+  cp "$config" "$config.bak-$(date +%Y%m%d-%H%M%S)"
+  # The names sort by date, and so does the glob: the oldest come first.
+  backups=("$config".bak-*)
+  if [ ${#backups[@]} -gt "$KEEP" ]; then
+    rm -- "${backups[@]:0:${#backups[@]}-KEEP}"
+  fi
+fi
 
 MODELS_JSON=$models python3 - "$config" "$PORT" "$default" <<'EOF'
 import json, os, sys

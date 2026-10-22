@@ -88,6 +88,8 @@ Start the container; llama-swap listens on `http://127.0.0.1:8085/v1`:
 ./docker/dock.sh start
 ```
 
+The command shows the output of the container until llama-swap says it is listening, a few seconds. A container that fails shows why and is stopped, instead of restarting forever.
+
 Any OpenAI-compatible client can use it: the model is the name in the first column of [the results](#the-results). For example:
 
 ```
@@ -105,7 +107,7 @@ Add the models to [opencode](https://opencode.ai), with azllm as the default:
 ./opencode-config.sh --default azllm
 ```
 
-The script reads the list of models, with their context sizes, from llama-swap, and writes the provider `qwen-4090-bench` into `~/.config/opencode/opencode.json`, after a backup. In opencode, choose a model with `/models`; opencode shows the progress while an engine loads.
+The script reads the list of models, with their context sizes, from llama-swap, and writes the provider `qwen-4090-bench` into `~/.config/opencode/opencode.json`, after a backup next to it, `opencode.json.bak-<date>`; it keeps the last 5 backups, or the last `KEEP` with e.g. `KEEP=10 ./opencode-config.sh`. The other providers and settings stay as they are. In opencode, choose a model with `/models`; opencode shows the progress while an engine loads.
 
 ## The Commands
 
@@ -114,7 +116,7 @@ The script reads the list of models, with their context sizes, from llama-swap, 
 | `./docker/dock.sh download` | Clone the engines, if the repository was cloned without `--recursive` |
 | `./docker/dock.sh build` | Build the image and compile the engines |
 | `./docker/dock.sh models` | Download the models |
-| `./docker/dock.sh start` | Start llama-swap; it also starts with the computer from then on |
+| `./docker/dock.sh start` | Start llama-swap and show its output until it listens; it also starts with the computer from then on |
 | `./docker/dock.sh status` | Show the container and the model that is loaded |
 | `./docker/dock.sh logs` | Follow llama-swap and the engines |
 | `./docker/dock.sh stop` | Stop the container |
@@ -129,7 +131,9 @@ The models are defined in [`scripts/llama-swap.yaml`](scripts/llama-swap.yaml). 
 
 **opencode shows no `qwen-4090-bench` models.** The container was not running when `./opencode-config.sh` ran: start it and run the script again.
 
-**`./docker/dock.sh start` ends with `llama-swap is not built` or `no models in /models`** in the logs. Run `./docker/dock.sh build` or `./docker/dock.sh models` first.
+**`./docker/dock.sh start` ends with `llama-swap is not built` or `No models in ../models`.** The engines are not compiled or the models are not downloaded: run `./docker/dock.sh build` or `./docker/dock.sh models` first.
+
+**`./docker/dock.sh start` ends with `The container did not start`.** The lines above it are the output of the container and say why; the container is stopped.
 
 **A request ends with an error after about seven minutes.** The engine did not start: `./docker/dock.sh logs` shows why, usually a missing model file.
 
