@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/kineticsystem/qwen-4090-bench/actions/workflows/ci.yml/badge.svg)](https://github.com/kineticsystem/qwen-4090-bench/actions/workflows/ci.yml)
 
+<p align="center"><img src="doc/img/summary.svg" width="80%" alt="Decode speed and served context of the seven models on one RTX 4090: azllm is the fastest"></p>
+
 This repository is a benchmark. We wanted to know how to run a large language model on our own computer, with one **NVIDIA GeForce RTX 4090** (24 GB), as fast as possible and without losing quality.
 
 We used one model, **Qwen3.8-27B**, and compared four programs that run it, called *inference engines*:
@@ -34,8 +36,6 @@ The repository also packages every configuration we measured, ready to use: one 
 - [Licenses](#licenses)
 
 ## The Results
-
-![Decode speed and served context of the seven models on one RTX 4090: azllm is the fastest](doc/img/summary.png)
 
 Decode speed on six short prompts, with the recommended sampling and thinking off, and accuracy with greedy decoding. The first column is the name a client asks for:
 
