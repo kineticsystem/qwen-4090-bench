@@ -1,0 +1,118 @@
+azllm: keep a tool-call parameter declared as a string as a string
+
+tqserve converts the model's Qwen XML tool calls (<parameter=NAME>VALUE</parameter>)
+into OpenAI "arguments" JSON. It keeps every value that parses as JSON as JSON, so a
+string parameter whose text is itself JSON, e.g. the content of opencode's write tool
+for a .json file, reaches the client as an object, and a client that validates the
+arguments against the tool's schema rejects the call ("Expected string").
+
+The fix reads the tool schemas of the request and keeps the parameters they declare as
+"type": "string" (or a type list holding "string") as text; the others are parsed as
+before. llama.cpp does the same.
+
+Against xhinker/azllm 1bce696.
+
+diff --git a/tools/serve/session.hpp b/tools/serve/session.hpp
+index 6a5c600..c80f8ff 100644
+--- a/tools/serve/session.hpp
++++ b/tools/serve/session.hpp
+@@ -89,6 +89,7 @@ struct ChatRequest {
+     uint32_t max_tokens = 64;
+     bool chat = true;
+     bool tools = false;  // tool schemas were rendered: parse <tool_call> blocks in the output
++    std::vector<std::string> string_params;  // "tool\nparameter" for each parameter whose schema type is string
+     bool thinking = false;  // prompt opens a <think> block: split the output into reasoning_content / content
+     // reasoning budget, llama.cpp semantics: -1 unlimited, 0 end thinking immediately, N > 0 at most N thinking tokens, then the
+     // message + end-of-thinking tag are forced and the answer continues. budget_set / message_set: the request named them
+@@ -107,6 +108,29 @@ struct ChatRequest {
+     std::string error;
+ };
+ 
++// The parameters the tool schemas declare as strings ("type": "string", or a type list that holds "string"), as
++// "tool\nparameter". Their values stay text in the parsed tool calls even when they look like JSON: a file's
++// content may well be a JSON document, and a client that validates the arguments rejects an object there.
++inline std::vector<std::string> string_params(const tqllm::Json & tools) {
++    std::vector<std::string> out;
++    for (const auto & tool : tools.arr) {
++        const tqllm::Json * fn = tool.get("function");
++        if (!fn) fn = &tool;
++        const auto * name = fn->get("name");
++        const auto * params = fn->get("parameters");
++        const auto * props = params ? params->get("properties") : nullptr;
++        if (!name || name->kind != tqllm::Json::String || !props) continue;
++        for (const auto & [key, schema] : props->obj) {
++            const auto * type = schema.get("type");
++            bool is_string = type && type->kind == tqllm::Json::String && type->str == "string";
++            if (type && type->kind == tqllm::Json::Array)
++                for (const auto & t : type->arr) is_string |= t.kind == tqllm::Json::String && t.str == "string";
++            if (is_string) out.push_back(name->str + "\n" + key);
++        }
++    }
++    return out;
++}
++
+ inline bool read_token_count(const tqllm::Json * value, uint32_t & out) {
+     if (!value || value->kind != tqllm::Json::Number || !std::isfinite(value->num) || value->num < 0 ||
+         value->num > std::numeric_limits<uint32_t>::max()) return false;
+@@ -323,12 +347,14 @@ inline ChatRequest parse_request(const std::string & body, uint32_t default_max_
+                     }
+                 }
+                 req.tools = tools && tools->kind == tqllm::Json::Array && !tools->arr.empty();
++                if (req.tools) req.string_params = string_params(*tools);
+                 req.prompt_text = (*renderer)(msgs, req.tools ? tools : nullptr, kw);
+                 req.ok = true;
+                 return req;
+             }
+             if (tools && tools->kind == tqllm::Json::Array && !tools->arr.empty()) {  // Qwen3.5 chat template layout
+                 req.tools = true;
++                req.string_params = string_params(*tools);
+                 req.prompt_text = "<|im_start|>system\n" + (effort_text.empty() ? std::string() : effort_text + "\n\n") +
+                                   "# Tools\n\nYou have access to the following functions:\n\n<tools>";
+                 for (const auto & tool : tools->arr) req.prompt_text += "\n" + dump(tool);
+@@ -504,7 +530,7 @@ struct DecodeResult {
+     std::string error;
+ };
+ 
+-inline void extract_tool_calls(DecodeResult & r);
++inline void extract_tool_calls(DecodeResult & r, const std::vector<std::string> & string_params = {});
+ 
+ inline size_t tool_stream_limit(const std::string & t) {
+     static const std::string markers[2] = {"<" "function=", "<" "tool_call>"};
+@@ -790,7 +816,7 @@ inline void finish(const tqllm::Tokenizer & tokenizer, const ChatRequest & req,
+             for (const auto & stop : req.stop)
+                 if (const auto p = stop.empty() ? std::string::npos : result.text.find(stop); p != std::string::npos) result.text.resize(p);
+         }
+-        if (req.tools) extract_tool_calls(result);
++        if (req.tools) extract_tool_calls(result, req.string_params);
+     }
+ }
+ 
+@@ -866,13 +892,14 @@ inline DecodeResult decode(const tqllm::Tokenizer & tokenizer, tqllm::Model & mo
+         if (i + 1 < count) next = model.forward(next, static_cast<uint32_t>(prompt.size()) + i, true);
+     }
+     if (req.return_token_ids) result.token_ids = output;
+-    if (req.tools) extract_tool_calls(result);
++    if (req.tools) extract_tool_calls(result, req.string_params);
+     return result;
+ }
+ 
+ // [<tool_call>]\n<function=NAME>\n<parameter=P>\nVALUE\n</parameter>...</function>\n</tool_call>: values that parse as
+-// JSON (numbers, booleans, objects, arrays) are kept as JSON, anything else becomes a string.
+-inline void extract_tool_calls(DecodeResult & r) {
++// JSON (numbers, booleans, objects, arrays) are kept as JSON, anything else becomes a string. A parameter the tool's
++// schema declares as a string (string_params) is always a string.
++inline void extract_tool_calls(DecodeResult & r, const std::vector<std::string> & string_params) {
+     // <tool_call> / </tool_call> are special tokens the detokenizer drops, so blocks are found by <function=...>.
+     const auto first_fn = r.text.find("<function=");
+     if (first_fn == std::string::npos) return;
+@@ -901,7 +928,9 @@ inline void extract_tool_calls(DecodeResult & r) {
+             jstr(args, key);
+             args += ": ";
+             bool as_json = false;
+-            try {
++            const bool text = std::find(string_params.begin(), string_params.end(), call.name + "\n" + key) !=
++                              string_params.end();
++            if (!text) try {
+                 const auto j = tqllm::parse_json(value);
+                 as_json = j.kind != tqllm::Json::String;
+                 if (as_json) args += dump(j);

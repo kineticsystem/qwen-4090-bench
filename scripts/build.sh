@@ -8,6 +8,11 @@
 #   engine   llama.cpp, llama-cpp-turboquant, open-jet, ninfer-4090, azllm, llama-swap
 #            (default: all, in that order: OpenJet needs llama.cpp)
 #   --force  rebuild even when the engine's binary is already there
+#
+# Fixes of our own to an engine are patches in patches/<engine>/, applied to its submodule
+# before it is built: the submodule stays at the upstream commit, and the fix is a file of
+# this repository. A patch already applied is skipped; one that no longer applies stops the
+# build.
 set -euo pipefail
 WS=$(cd "$(dirname "$0")/.." && pwd)
 E=$WS/engines B=$WS/build
@@ -19,7 +24,24 @@ for a in "$@"; do [ "$a" = --force ] && force=1 || engines+=("$a"); done
 # Skip an engine whose output already exists, unless --force.
 built() { [ $force = 0 ] && [ -e "$1" ] && echo "== $2: already built ($1)"; }
 
+# Apply the patches of patches/<engine>/ to its submodule, in name order.
+patch_engine() {
+  local p
+  for p in "$WS/patches/$1"/*.patch; do
+    [ -e "$p" ] || return 0
+    if git -C "$E/$1" apply --reverse --check "$p" 2>/dev/null; then
+      echo "== $1: $(basename "$p") already applied"
+    elif git -C "$E/$1" apply "$p"; then
+      echo "== $1: applied $(basename "$p")"
+    else
+      echo "$(basename "$p") no longer applies to engines/$1: update it, or drop it if upstream fixed the bug" >&2
+      exit 1
+    fi
+  done
+}
+
 for engine in "${engines[@]}"; do
+  patch_engine "$engine"
   case $engine in
     llama.cpp)
       # Only libllama, which OpenJet loads to tokenize (vocabulary only): no CUDA needed.

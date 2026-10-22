@@ -31,6 +31,7 @@ The repository also packages every configuration I measured, ready to use: one D
   - [opencode](#opencode)
 - [The Commands](#the-commands)
 - [Change a Model](#change-a-model)
+- [Fixes to the Engines](#fixes-to-the-engines)
 - [Room for the Display](#room-for-the-display)
 - [Troubleshooting](#troubleshooting)
 - [Licenses](#licenses)
@@ -134,6 +135,16 @@ The script reads the list of models, with their context sizes, from llama-swap, 
 
 The models are defined in [`scripts/llama-swap.yaml`](scripts/llama-swap.yaml). Each one runs a script of [`scripts/serve`](scripts/serve) with its options, e.g. a context size or a KV cache format; each script lists its options in its header. The scripts are mounted into the container, so a change needs no rebuild: restart the container with `./docker/dock.sh stop` and `./docker/dock.sh start`, then run `./opencode-config.sh` again so that opencode knows the new context sizes.
 
+## Fixes to the Engines
+
+The engines are other people's code, in Git submodules. When one of them needs a fix of mine, the fix is a patch in [`patches/<engine>/`](patches), and [`scripts/build.sh`](scripts/build.sh) applies it to the submodule before it compiles the engine. The submodule stays at the upstream commit, and the fix is a file of this repository, so a fresh clone builds the same engine. A patch already applied is skipped; a patch that no longer applies, after the submodule moves to a newer commit, stops the build with its name, to be updated or, when upstream fixed the bug, deleted.
+
+| Patch | What it fixes |
+|---|---|
+| [`azllm/0001-tool-call-string-parameters.patch`](patches/azllm/0001-tool-call-string-parameters.patch) | azllm sends a tool-call parameter whose text is valid JSON as JSON, even when the tool declares it a string. opencode then rejects a `write` of a `.json` file with `Expected string`. The patch keeps the parameters the tool declares as strings as text, as llama.cpp does. |
+
+The patched submodule shows no change in `git status`: `.gitmodules` sets `ignore = dirty` for it. A binary built before a patch was added keeps the old code; rebuild the engine with `./docker/dock.sh build --force azllm`.
+
 ## Room for the Display
 
 The RTX 4090 of my computer also drives the display. The desktop holds 0.7 to 1 GB of its memory: Xorg, gnome-shell, the browser and the other windows, more as windows open. `nvidia-smi` lists them as type `G`.
@@ -165,6 +176,8 @@ For more context, leave less room: pass `--ctx` to the scripts in [`scripts/llam
 **`./docker/dock.sh start` ends with `The container did not start`.** The lines above it are the output of the container and say why; the container is stopped.
 
 **opencode seems to think forever, and `./docker/dock.sh logs` shows `does not fit as asked` and `starting azllm failed`.** azllm does not fit next to what the display holds. NInfer says `requested Engine runtime reservation requires … bytes, but only … bytes are available`, and OpenJet `out of memory`. While a model loads, llama-swap writes its progress in the reasoning field, so opencode shows it as thinking; when azllm gives up, opencode sends the request again and the load starts over. Close windows that use the GPU, or give azllm a smaller `--ctx`: see [Room for the Display](#room-for-the-display).
+
+**A client rejects azllm's tool calls with `Expected string`, e.g. opencode writing a `.json` file.** The azllm binary was built without the patch of [Fixes to the Engines](#fixes-to-the-engines): rebuild it with `./docker/dock.sh build --force azllm`, then restart the container.
 
 **OpenJet or the baseline does not start, and the log shows `model is corrupted or incomplete`.** The download of `models/unsloth/Qwen3.8-27B-UD-Q4_K_XL.gguf` stopped before the end, e.g. when the connection dropped; a complete file is 17.6 GB and has a `.ok` file next to it. Run `./docker/dock.sh models` again: it continues where it stopped and checks the SHA-256.
 

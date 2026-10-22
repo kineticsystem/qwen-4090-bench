@@ -10,6 +10,8 @@
 [submodule "engines/azllm"]
 	path = engines/azllm
 	url = https://github.com/xhinker/azllm
+	# patches/azllm/ is applied by scripts/build.sh
+	ignore = dirty
 [submodule "engines/llama-swap"]
 	path = engines/llama-swap
 	url = https://github.com/mostlygeek/llama-swap
