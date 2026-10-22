@@ -3,8 +3,8 @@
 #
 # Usage: scripts/serve/openjet.sh [--ctx N] [--kv q8|f16] [--drafts N] [--port N]
 #   --ctx     context (default 65536, the most that leaves 2 GB of the GPU free for the
-#             display; on a card that drives no display, 147456 fits, with smaller
-#             prefill chunks, chosen automatically above 131072)
+#             display; with only OpenJet's default free memory, the research measured
+#             147456, with smaller prefill chunks, chosen automatically above 131072)
 #   --kv      q8 (default) or f16 (at most 69632 tokens)
 #   --drafts  MTP drafts per step, 0-4 (default 4)
 set -euo pipefail

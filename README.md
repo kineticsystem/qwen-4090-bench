@@ -13,7 +13,7 @@ At full precision the model does not fit in 24 GB, so each engine uses a compres
 
 For each engine we measured the speed, the accuracy, the largest context that fits on the card, with and without the model's vision, and how much precision is lost by compressing the memory of the context, the KV cache.
 
-The best engine, azllm, is 2.5 times faster than llama.cpp, as precise, and fits the model's full 256K context with vision when the card holds nothing else. The details are in the [research report](doc/research/REPORT.md) and the [paper](doc/research/Serving-Qwen3.8-27B-on-a-single-RTX-4090.pdf).
+The best engine, azllm, is 2.5 times faster than llama.cpp, as precise, and has the most context: 228K tokens with vision, while leaving 2 GB of the card free for the display. The details are in the [research report](doc/research/REPORT.md) and the [paper](doc/research/Serving-Qwen3.8-27B-on-a-single-RTX-4090.pdf).
 
 The repository also packages every configuration we measured, ready to use: one Docker container with the four engines and [llama-swap](https://github.com/mostlygeek/llama-swap), which starts the engine a request asks for. Any program that speaks the OpenAI API can use it. We used the coding agent [opencode](https://opencode.ai), and provide a script that configures it.
 
@@ -49,7 +49,7 @@ Decode speed on six short prompts, with the recommended sampling and thinking of
 
 **azllm is the best of the engines we tested.** It is 2.5 times faster than the baseline, about 300 tok/s on code, and as precise: its weights predict code within 0.5% of the baseline's, and the accuracy differences are within the noise of the tests.
 
-The context is the one each model is served with here, which keeps 2 GB of the GPU free for the display: see [Room for the Display](#room-for-the-display). The research measured the speeds and scores at the larger contexts that fit when the card holds nothing else; the speed hardly depends on the context size.
+The context is the one each model is served with here, which keeps 2 GB of the GPU free for the display: see [Room for the Display](#room-for-the-display). The research measured the speeds and scores at larger contexts, which left each engine only its default free memory, e.g. 768 MiB for azllm; the speed hardly depends on the context size.
 
 For long coding sessions, use **`azllm-228k`**: it has the most context, its 4-bit KV cache costs almost nothing in precision, and it is as fast on short prompts.
 
@@ -152,7 +152,7 @@ azllm checks the room itself: [`scripts/serve/azllm.sh`](scripts/serve/azllm.sh)
 
 The room costs some models more than others. `ninfer-fast` keeps a second KV cache for its DFlash2 drafter, and near the `azllm` limit what does not fit is the prefill buffers, not the KV cache. With room for a display, `azllm-228k` is the model with the most context.
 
-On a card that drives no display, the measured contexts fit: pass `--ctx` to the scripts in [`scripts/llama-swap.yaml`](scripts/llama-swap.yaml), and lower `-fitt` in `azllm.sh`.
+For more context, leave less room: pass `--ctx` to the scripts in [`scripts/llama-swap.yaml`](scripts/llama-swap.yaml), and lower `-fitt` in `azllm.sh`. The contexts measured in the research, which left each engine only its default free memory, are the most each engine can start with.
 
 ## Troubleshooting
 
