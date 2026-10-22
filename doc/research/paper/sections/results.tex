@@ -92,7 +92,10 @@ embeddings and a copy of the LM head to host memory; decode speed is unchanged (
 These limits leave each engine's default free memory, 768\,MiB for azllm. With 2\,GB left free
 for a desktop on the same card, azllm starts with at most 151{,}552 tokens with \texttt{q8/q4} KV
 and 233{,}472 with \texttt{q4/q4}: near the \texttt{q8/q4} limit, what no longer fits is the
-full-size prefill buffers, not the KV cache.
+full-size prefill buffers, not the KV cache. With the same room, measured with \texttt{nvidia-smi},
+NInfer serves 176{,}128 (\texttt{long}), 118{,}784 (\texttt{precise}) and 77{,}824 tokens
+(\texttt{fast}, whose drafter keeps a KV cache of its own), OpenJet 65{,}536, and the baseline its
+128{,}000.
 
 \begin{figure*}[t]
   \centering

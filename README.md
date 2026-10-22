@@ -40,16 +40,16 @@ Decode speed on six short prompts, with the recommended sampling and thinking of
 | Model | Engine | Context | Vision | Speed | GSM8K | HumanEval |
 |---|---|---:|:---:|---:|---:|---:|
 | `baseline` | llama.cpp (TurboQuant fork) | 128K | yes | 89.6 tok/s | 97.2% | 96.3% |
-| `openjet` | OpenJet | 128K | no | 135.9 tok/s | 95.6% | 96.3% |
-| `ninfer-precise` | NInfer | 200K | yes | 137.4 tok/s | 97.6% | 95.1% |
-| `ninfer-long` | NInfer | 256K | yes | 139.0 tok/s | 96.0% | 96.3% |
-| `ninfer-fast` | NInfer | 192K | yes | 166.0 tok/s | 97.2% | 95.7% |
+| `openjet` | OpenJet | 64K | no | 135.9 tok/s | 95.6% | 96.3% |
+| `ninfer-precise` | NInfer | 116K | yes | 137.4 tok/s | 97.6% | 95.1% |
+| `ninfer-long` | NInfer | 172K | yes | 139.0 tok/s | 96.0% | 96.3% |
+| `ninfer-fast` | NInfer | 76K | yes | 166.0 tok/s | 97.2% | 95.7% |
 | **`azllm`** | azllm | 148K | yes | **228.6 tok/s** | 95.2% | 95.7% |
 | **`azllm-228k`** | azllm | **228K** | yes | **228.8 tok/s** | 96.8% | 95.7% |
 
 **azllm is the best of the engines we tested.** It is 2.5 times faster than the baseline, about 300 tok/s on code, and as precise: its weights predict code within 0.5% of the baseline's, and the accuracy differences are within the noise of the tests.
 
-The azllm rows were measured at 242K (`q8/q4` KV cache) and 256K (`q4/q4`), the largest contexts that fit with azllm's default 768 MiB left free. Served here, they keep 2 GB free for the display, which leaves 148K and 228K; the speed hardly depends on the context size.
+The context is the one each model is served with here, which keeps 2 GB of the GPU free for the display: see [Room for the Display](#room-for-the-display). The research measured the speeds and scores at the larger contexts that fit when the card holds nothing else; the speed hardly depends on the context size.
 
 For long coding sessions, use **`azllm-228k`**: it has the most context, its 4-bit KV cache costs almost nothing in precision, and it is as fast on short prompts.
 
@@ -134,18 +134,25 @@ The models are defined in [`scripts/llama-swap.yaml`](scripts/llama-swap.yaml). 
 
 ## Room for the Display
 
-The RTX 4090 of our computer also drives the display. The desktop holds about 1 GB of its memory: Xorg, gnome-shell, the browser and the other windows, more as windows open. `nvidia-smi` lists them as type `G`.
+The RTX 4090 of our computer also drives the display. The desktop holds 0.7 to 1 GB of its memory: Xorg, gnome-shell, the browser and the other windows, more as windows open. `nvidia-smi` lists them as type `G`.
 
-azllm reserves the memory of the whole context when it starts, so a long conversation never runs out of it later. What grows while it runs is the desktop, and azllm's cache of CUDA graphs, about 12 MB each. [`scripts/serve/azllm.sh`](scripts/serve/azllm.sh) therefore keeps 2 GB free after loading, with `-fitt 2048`, and asks for the largest contexts that start with that room, found by starting azllm with each context:
+azllm and NInfer reserve the memory of the whole context when they start, so a long conversation does not run out of it later: NInfer used the same memory after start, after a short request and after a 20,000-token prompt. What grows while an engine runs is the desktop, and azllm's cache of CUDA graphs, about 12 MB each. So each model is served with a context, in steps of 4,096 tokens, that starts with the desktop running and leaves at least 2 GB of the GPU free. The last column is the free memory after one short request, or for azllm after loading, as its own check reports it:
 
-| Model | KV cache | Measured, 768 MiB free | Served, 2 GB free |
-|---|---|---:|---:|
-| `azllm` | `q8/q4` | 241,664 | 151,552 |
-| `azllm-228k` | `q4/q4` | 262,144 | 233,472 |
+| Model | Measured in the research | Served, 2 GB free | Free, measured |
+|---|---:|---:|---:|
+| `baseline` | 128,000 | 128,000 | 2,300 MiB |
+| `openjet` | 131,072 | 65,536 | 2,245 MiB |
+| `ninfer-precise` | 204,800 | 118,784 | 2,212 MiB |
+| `ninfer-long` | 262,144 | 176,128 | 2,227 MiB |
+| `ninfer-fast` | 192,512 | 77,824 | 2,171 MiB |
+| `azllm` | 241,664 | 151,552 | 2.18 GB, azllm's report |
+| `azllm-228k` | 262,144 | 233,472 | 2.15 GB or more, azllm's report |
 
-The room costs `azllm` more context than `azllm-228k`: near its limit, what does not fit is the prefill buffers, not the KV cache. The script runs azllm with `-fitl off`, so it refuses a context that does not fit, instead of starting with smaller buffers or a shorter context than we asked for.
+azllm checks the room itself: [`scripts/serve/azllm.sh`](scripts/serve/azllm.sh) runs it with `-fitt 2048`, and with `-fitl off`, so it refuses a context that does not fit instead of starting with smaller buffers or a shorter context than we asked for. The other engines have no such setting: their contexts were measured with `nvidia-smi`, with at least 2,048 MiB free as the test, and the desktop moves the result by up to 400 MiB from one start to the next, so NInfer and OpenJet get one step below the last context that passed.
 
-On a card that drives no display, the measured contexts fit: pass `--ctx` to the script in [`scripts/llama-swap.yaml`](scripts/llama-swap.yaml), and lower `-fitt` in the script. The other engines are sized as measured and keep no extra room.
+The room costs some models more than others. `ninfer-fast` keeps a second KV cache for its DFlash2 drafter, and near the `azllm` limit what does not fit is the prefill buffers, not the KV cache. With room for a display, `azllm-228k` is the model with the most context.
+
+On a card that drives no display, the measured contexts fit: pass `--ctx` to the scripts in [`scripts/llama-swap.yaml`](scripts/llama-swap.yaml), and lower `-fitt` in `azllm.sh`.
 
 ## Troubleshooting
 
@@ -155,7 +162,9 @@ On a card that drives no display, the measured contexts fit: pass `--ctx` to the
 
 **`./docker/dock.sh start` ends with `The container did not start`.** The lines above it are the output of the container and say why; the container is stopped.
 
-**opencode seems to think forever, and `./docker/dock.sh logs` shows `does not fit as asked` and `starting azllm failed`.** azllm does not fit next to what the display holds. While a model loads, llama-swap writes its progress in the reasoning field, so opencode shows it as thinking; when azllm gives up, opencode sends the request again and the load starts over. Close windows that use the GPU, or give azllm a smaller `--ctx`: see [Room for the Display](#room-for-the-display).
+**opencode seems to think forever, and `./docker/dock.sh logs` shows `does not fit as asked` and `starting azllm failed`.** azllm does not fit next to what the display holds. NInfer says `requested Engine runtime reservation requires … bytes, but only … bytes are available`, and OpenJet `out of memory`. While a model loads, llama-swap writes its progress in the reasoning field, so opencode shows it as thinking; when azllm gives up, opencode sends the request again and the load starts over. Close windows that use the GPU, or give azllm a smaller `--ctx`: see [Room for the Display](#room-for-the-display).
+
+**OpenJet or the baseline does not start, and the log shows `model is corrupted or incomplete`.** The download of `models/unsloth/Qwen3.8-27B-UD-Q4_K_XL.gguf` stopped before the end, e.g. when the connection dropped; a complete file is 17.6 GB and has a `.ok` file next to it. Run `./docker/dock.sh models` again: it continues where it stopped and checks the SHA-256.
 
 **A request ends with an error after about seven minutes.** The engine did not start: `./docker/dock.sh logs` shows why, usually a missing model file.
 

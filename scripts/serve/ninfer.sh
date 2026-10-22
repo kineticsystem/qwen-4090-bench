@@ -2,18 +2,20 @@
 # NInfer-4090 with a profile, or with options of your own.
 #
 # Usage: scripts/serve/ninfer.sh [long|precise|fast] [options]
-#   long     262144 context, vision, MTP 3 drafts, rk4v4-e8 KV (4-bit keys and values)  (default)
-#   precise  204800 context, vision, MTP 3 drafts, rk8v4 KV (8-bit keys, 4-bit values)
-#   fast     192512 context, vision, DFlash2 7 drafts, rk4v4-e8 KV
+#   long     176128 context, vision, MTP 3 drafts, rk4v4-e8 KV (4-bit keys and values)  (default)
+#   precise  118784 context, vision, MTP 3 drafts, rk8v4 KV (8-bit keys, 4-bit values)
+#   fast     77824 context, vision, DFlash2 7 drafts, rk4v4-e8 KV
+# The contexts leave 2 GB of the GPU free for the display, with the desktop running; on a
+# card that drives no display, the research measured 262144, 204800 and 192512.
 # Options after the profile change it:
 #   --ctx N, --kv int8|rk8v4|rk4v4-e8, --spec mtp|dflash2|none, --drafts N, --no-vision, --port N
 set -euo pipefail
 . "$(dirname "$0")/common.sh"
 profile=long; case "${1:-}" in long|precise|fast) profile=$1; shift ;; esac
 case $profile in
-  long)    ctx=262144 kv=rk4v4-e8 spec=mtp     drafts=3 ;;
-  precise) ctx=204800 kv=rk8v4    spec=mtp     drafts=3 ;;
-  fast)    ctx=192512 kv=rk4v4-e8 spec=dflash2 drafts=7 ;;
+  long)    ctx=176128 kv=rk4v4-e8 spec=mtp     drafts=3 ;;
+  precise) ctx=118784 kv=rk8v4    spec=mtp     drafts=3 ;;
+  fast)    ctx=77824  kv=rk4v4-e8 spec=dflash2 drafts=7 ;;
 esac
 vision=(--vision)
 while [ $# -gt 0 ]; do case "$1" in

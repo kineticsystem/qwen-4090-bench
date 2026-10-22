@@ -188,7 +188,7 @@ With a full context the baseline slows down to 55 tok/s; azllm keeps 132 to 162 
 
 ### Room for the Display
 
-The capacities above leave each engine's default free memory on the GPU: 768 MiB for azllm. On our computer the same RTX 4090 also drives the display, and the desktop holds about 1 GB of its memory: Xorg, gnome-shell and the open windows, which `nvidia-smi` lists as type `G`. It grows as windows open. With the desktop running, azllm `q8/q4` at 241,664 tokens and even at 221,184 refuses to start, with `does not fit as asked (1 slot(s), context 241664 per slot, KV q8/q4): it would need prefill buffers -ub 512, prefill FP16 weight blocks of 2048 rows`.
+The capacities above leave each engine's default free memory on the GPU: 768 MiB for azllm. On our computer the same RTX 4090 also drives the display, and the desktop holds 0.7 to 1 GB of its memory: Xorg, gnome-shell and the open windows, which `nvidia-smi` lists as type `G`. It grows as windows open. With the desktop running, azllm `q8/q4` at 241,664 tokens and even at 221,184 refuses to start, with `does not fit as asked (1 slot(s), context 241664 per slot, KV q8/q4): it would need prefill buffers -ub 512, prefill FP16 weight blocks of 2048 rows`.
 
 The KV cache is not what grows: azllm reserves it whole at start. What grows is the desktop, and azllm's cache of CUDA graphs. So the packaged project keeps 2 GB free after loading, with `-fitt 2048`, and serves the largest contexts that start with that room, found as above, 4,096 tokens apart, with vision and the desktop running:
 
@@ -199,7 +199,17 @@ The KV cache is not what grows: azllm reserves it whole at start. What grows is 
 
 The room costs `q8/q4` about 90K tokens and `q4/q4` only 29K, although `q4/q4` needs fewer bytes per token. Near the `q8/q4` limit, what does not fit is the full-size prefill buffers, not the KV cache: every refusal asks for smaller prefill buffers. With the room for a display, `q4/q4` is the azllm configuration with the most context. Decode speed hardly depends on the context size (228.5 tok/s at 241,664 tokens with vision, 230.4 at 131,072 without), so the speeds of this report hold for the smaller contexts.
 
-We did not measure the other engines again with the display: their capacities above leave their default free memory, and may not start next to a desktop.
+Next to the desktop, NInfer and OpenJet do not start at their capacities either. NInfer's `long`, `precise` and `fast` profiles stop with `requested Engine runtime reservation requires … bytes, but only … bytes are available`, 62, 735 and 829 MiB short, and OpenJet at 131,072 tokens with `out of memory`. The baseline starts at its 128,000 tokens. They have no setting like azllm's `-fitt`, so we measured them from the outside: a context passes when the server starts and, after one short request, `nvidia-smi` shows at least 2,048 MiB of the GPU free. The desktop moves that figure by up to 400 MiB from one start to the next (NInfer `long` at 180,224 tokens left 2,192, 2,176 and 1,810 MiB in three starts), so NInfer and OpenJet are served one step of 4,096 tokens below the last context that passed:
+
+| Setup | Capacity above | Served, 2 GB free | Free, measured |
+|---|---:|---:|---:|
+| Baseline, vision | 128,000 (as served) | 128,000 | 2,300 MiB |
+| OpenJet | 131,072 (as served) | 65,536 | 2,245 MiB |
+| NInfer `precise`, vision | 204,800 | 118,784 | 2,212 MiB |
+| NInfer `long`, vision | 262,144 | 176,128 | 2,227 MiB |
+| NInfer `fast`, vision | 192,512 | 77,824 | 2,171 MiB |
+
+NInfer's memory does not grow in use: with `long` at 180,224 tokens, the GPU held the same 22,388 MiB after start, after a short request and after a 20,000-token prompt. NInfer `fast` loses the most, because its DFlash2 drafter keeps a KV cache of its own.
 
 ## Precision
 

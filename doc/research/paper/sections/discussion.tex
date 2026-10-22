@@ -47,7 +47,9 @@ bit count.
         as windows open. Next to it, azllm with \texttt{q8/q4} KV refuses 221{,}184 tokens. Our
         packaged servers keep 2\,GB free and serve 151{,}552 tokens (\texttt{q8/q4}) and
         233{,}472 (\texttt{q4/q4}); the KV cache is reserved whole at start, so the room is for
-        the desktop and the CUDA graphs. We did not measure the other engines again this way.
+        the desktop and the CUDA graphs. NInfer and OpenJet lose more, down to 77{,}824 and
+        65{,}536 tokens; their limits were measured from the free memory, which the desktop
+        moves by up to 400\,MiB between starts.
   \item azllm and NInfer are young projects maintained by few people, and both need weight
         files of their own.
 \end{itemize}

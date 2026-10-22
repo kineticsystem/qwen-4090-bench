@@ -38,28 +38,28 @@ models:
     metadata: {context: 233472, output: 16384}
 
   ninfer-long:
-    name: "NInfer long, 256K, vision"
+    name: "NInfer long, 172K, vision"
     cmd: ${serve}/ninfer.sh long --port ${PORT}
     useModelName: Qwen3.8-27B
-    metadata: {context: 262144, output: 16384}
+    metadata: {context: 176128, output: 16384}
 
   ninfer-precise:
-    name: "NInfer precise, 200K, vision"
+    name: "NInfer precise, 116K, vision"
     cmd: ${serve}/ninfer.sh precise --port ${PORT}
     useModelName: Qwen3.8-27B
-    metadata: {context: 204800, output: 16384}
+    metadata: {context: 118784, output: 16384}
 
   ninfer-fast:
-    name: "NInfer fast, 192K, vision"
+    name: "NInfer fast, 76K, vision"
     cmd: ${serve}/ninfer.sh fast --port ${PORT}
     useModelName: Qwen3.8-27B
-    metadata: {context: 192512, output: 16384}
+    metadata: {context: 77824, output: 16384}
 
   openjet:
-    name: "OpenJet, 128K, text only"
+    name: "OpenJet, 64K, text only"
     cmd: ${serve}/openjet.sh --port ${PORT}
     useModelName: Qwen3.8-27B
-    metadata: {context: 131072, output: 16384}
+    metadata: {context: 65536, output: 16384}
 
   baseline:
     name: "Baseline llama.cpp, 128K, vision"

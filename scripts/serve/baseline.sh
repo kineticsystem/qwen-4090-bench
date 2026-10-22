@@ -1,7 +1,7 @@
 #!/bin/bash
 # The reference baseline: llama.cpp with the TurboQuant KV types (llama-cpp-turboquant) on
 # Unsloth's UD-Q4_K_XL GGUF, MTP with 2 drafts, q8_0 keys and turbo4 values, 128K context,
-# vision projector in host memory.
+# vision projector in host memory. It leaves about 2.3 GB of the GPU free for the display.
 #
 # Usage: scripts/serve/baseline.sh [--ctx N] [--no-vision] [--port N]
 set -euo pipefail
