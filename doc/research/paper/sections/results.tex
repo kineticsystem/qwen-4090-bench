@@ -89,6 +89,10 @@ and it has no 4-bit KV and no vision. azllm reaches the full native window, with
 \texttt{q4/q4} KV, and 241{,}664 tokens with \texttt{q8/q4}. Near its limits it moves the token
 embeddings and a copy of the LM head to host memory; decode speed is unchanged (228.5\,tok/s at
 241{,}664 tokens with vision, 230.4 at 131{,}072 without).
+These limits leave each engine's default free memory, 768\,MiB for azllm. With 2\,GB left free
+for a desktop on the same card, azllm starts with at most 151{,}552 tokens with \texttt{q8/q4} KV
+and 233{,}472 with \texttt{q4/q4}: near the \texttt{q8/q4} limit, what no longer fits is the
+full-size prefill buffers, not the KV cache.
 
 \begin{figure*}[t]
   \centering

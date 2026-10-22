@@ -26,16 +26,16 @@ macros:
 # useModelName: every server answers to Qwen3.8-27B (NInfer accepts no other name).
 models:
   azllm:
-    name: "azllm, 242K, vision (fastest)"
+    name: "azllm, 148K, vision (fastest)"
     cmd: ${serve}/azllm.sh --port ${PORT}
     useModelName: Qwen3.8-27B
-    metadata: {context: 241664, output: 16384}
+    metadata: {context: 151552, output: 16384}
 
-  azllm-256k:
-    name: "azllm, 256K, vision, 4-bit KV"
-    cmd: ${serve}/azllm.sh --kv q4/q4 --ctx 262144 --port ${PORT}
+  azllm-228k:
+    name: "azllm, 228K, vision, 4-bit KV"
+    cmd: ${serve}/azllm.sh --kv q4/q4 --ctx 233472 --port ${PORT}
     useModelName: Qwen3.8-27B
-    metadata: {context: 262144, output: 16384}
+    metadata: {context: 233472, output: 16384}
 
   ninfer-long:
     name: "NInfer long, 256K, vision"

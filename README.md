@@ -13,12 +13,12 @@ At full precision the model does not fit in 24 GB, so each engine uses a compres
 
 For each engine we measured the speed, the accuracy, the largest context that fits on the card, with and without the model's vision, and how much precision is lost by compressing the memory of the context, the KV cache.
 
-The best engine, azllm, is 2.5 times faster than llama.cpp, as precise, and fits the model's full 256K context with vision. The details are in the [research report](doc/research/REPORT.md) and the [paper](doc/research/Serving-Qwen3.8-27B-on-a-single-RTX-4090.pdf).
+The best engine, azllm, is 2.5 times faster than llama.cpp, as precise, and fits the model's full 256K context with vision when the card holds nothing else. The details are in the [research report](doc/research/REPORT.md) and the [paper](doc/research/Serving-Qwen3.8-27B-on-a-single-RTX-4090.pdf).
 
 The repository also packages every configuration we measured, ready to use: one Docker container with the four engines and [llama-swap](https://github.com/mostlygeek/llama-swap), which starts the engine a request asks for. Any program that speaks the OpenAI API can use it. We used the coding agent [opencode](https://opencode.ai), and provide a script that configures it.
 
 > [!IMPORTANT]
-> This project is built and tuned for the RTX 4090 (24 GB, `sm_89`) only. The engines are compiled for that GPU, and the context sizes fill its memory exactly.
+> This project is built and tuned for the RTX 4090 (24 GB, `sm_89`) only. The engines are compiled for that GPU, and the context sizes fill its memory, less the room the display needs: see [Room for the Display](#room-for-the-display).
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -29,6 +29,7 @@ The repository also packages every configuration we measured, ready to use: one 
   - [opencode](#opencode)
 - [The Commands](#the-commands)
 - [Change a Model](#change-a-model)
+- [Room for the Display](#room-for-the-display)
 - [Troubleshooting](#troubleshooting)
 - [Licenses](#licenses)
 
@@ -43,10 +44,14 @@ Decode speed on six short prompts, with the recommended sampling and thinking of
 | `ninfer-precise` | NInfer | 200K | yes | 137.4 tok/s | 97.6% | 95.1% |
 | `ninfer-long` | NInfer | 256K | yes | 139.0 tok/s | 96.0% | 96.3% |
 | `ninfer-fast` | NInfer | 192K | yes | 166.0 tok/s | 97.2% | 95.7% |
-| **`azllm`** | azllm | 242K | yes | **228.6 tok/s** | 95.2% | 95.7% |
-| **`azllm-256k`** | azllm | **256K** | yes | **228.8 tok/s** | 96.8% | 95.7% |
+| **`azllm`** | azllm | 148K | yes | **228.6 tok/s** | 95.2% | 95.7% |
+| **`azllm-228k`** | azllm | **228K** | yes | **228.8 tok/s** | 96.8% | 95.7% |
 
 **azllm is the best of the engines we tested.** It is 2.5 times faster than the baseline, about 300 tok/s on code, and as precise: its weights predict code within 0.5% of the baseline's, and the accuracy differences are within the noise of the tests.
+
+The azllm rows were measured at 242K (`q8/q4` KV cache) and 256K (`q4/q4`), the largest contexts that fit with azllm's default 768 MiB left free. Served here, they keep 2 GB free for the display, which leaves 148K and 228K; the speed hardly depends on the context size.
+
+For long coding sessions, use **`azllm-228k`**: it has the most context, its 4-bit KV cache costs almost nothing in precision, and it is as fast on short prompts.
 
 How the measurements were made, and how to reproduce them, is in the [research report](doc/research/REPORT.md).
 
@@ -127,6 +132,21 @@ The script reads the list of models, with their context sizes, from llama-swap, 
 
 The models are defined in [`scripts/llama-swap.yaml`](scripts/llama-swap.yaml). Each one runs a script of [`scripts/serve`](scripts/serve) with its options, e.g. a context size or a KV cache format; each script lists its options in its header. The scripts are mounted into the container, so a change needs no rebuild: restart the container with `./docker/dock.sh stop` and `./docker/dock.sh start`, then run `./opencode-config.sh` again so that opencode knows the new context sizes.
 
+## Room for the Display
+
+The RTX 4090 of our computer also drives the display. The desktop holds about 1 GB of its memory: Xorg, gnome-shell, the browser and the other windows, more as windows open. `nvidia-smi` lists them as type `G`.
+
+azllm reserves the memory of the whole context when it starts, so a long conversation never runs out of it later. What grows while it runs is the desktop, and azllm's cache of CUDA graphs, about 12 MB each. [`scripts/serve/azllm.sh`](scripts/serve/azllm.sh) therefore keeps 2 GB free after loading, with `-fitt 2048`, and asks for the largest contexts that start with that room, found by starting azllm with each context:
+
+| Model | KV cache | Measured, 768 MiB free | Served, 2 GB free |
+|---|---|---:|---:|
+| `azllm` | `q8/q4` | 241,664 | 151,552 |
+| `azllm-228k` | `q4/q4` | 262,144 | 233,472 |
+
+The room costs `azllm` more context than `azllm-228k`: near its limit, what does not fit is the prefill buffers, not the KV cache. The script runs azllm with `-fitl off`, so it refuses a context that does not fit, instead of starting with smaller buffers or a shorter context than we asked for.
+
+On a card that drives no display, the measured contexts fit: pass `--ctx` to the script in [`scripts/llama-swap.yaml`](scripts/llama-swap.yaml), and lower `-fitt` in the script. The other engines are sized as measured and keep no extra room.
+
 ## Troubleshooting
 
 **opencode shows no `qwen-4090-bench` models.** The container was not running when `./opencode-config.sh` ran: start it and run the script again.
@@ -134,6 +154,8 @@ The models are defined in [`scripts/llama-swap.yaml`](scripts/llama-swap.yaml). 
 **`./docker/dock.sh start` ends with `llama-swap is not built` or `No models in ../models`.** The engines are not compiled or the models are not downloaded: run `./docker/dock.sh build` or `./docker/dock.sh models` first.
 
 **`./docker/dock.sh start` ends with `The container did not start`.** The lines above it are the output of the container and say why; the container is stopped.
+
+**opencode seems to think forever, and `./docker/dock.sh logs` shows `does not fit as asked` and `starting azllm failed`.** azllm does not fit next to what the display holds. While a model loads, llama-swap writes its progress in the reasoning field, so opencode shows it as thinking; when azllm gives up, opencode sends the request again and the load starts over. Close windows that use the GPU, or give azllm a smaller `--ctx`: see [Room for the Display](#room-for-the-display).
 
 **A request ends with an error after about seven minutes.** The engine did not start: `./docker/dock.sh logs` shows why, usually a missing model file.
 

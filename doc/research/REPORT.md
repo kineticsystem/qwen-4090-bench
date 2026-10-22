@@ -16,6 +16,7 @@
   - [Switching Servers from opencode with llama-swap](#switching-servers-from-opencode-with-llama-swap)
 - [Speed](#speed)
 - [Context Size](#context-size)
+  - [Room for the Display](#room-for-the-display)
 - [Precision](#precision)
   - [The Weights](#the-weights)
   - [The KV Cache](#the-kv-cache)
@@ -30,7 +31,7 @@
 We compared five ways to run Qwen3.8-27B on an NVIDIA RTX 4090 (24 GB). The reference baseline is llama.cpp with the TurboQuant KV cache types ([TheTom/llama-cpp-turboquant](https://github.com/TheTom/llama-cpp-turboquant)), serving Unsloth's `UD-Q4_K_XL` GGUF with MTP speculative decoding (2 drafts), `q8_0` keys and `turbo4` values, and 128K context. The four other engines are faster. The best one is **[azllm](https://github.com/xhinker/azllm)**, a fork of [tqLLM](https://github.com/turbo-tan/tqllm):
 
 - **2.5x faster**: 229 tok/s against 90 for the baseline, and about 300 tok/s on code.
-- **Almost twice the context, with vision**: 242K tokens instead of 128K, or the full 262K with a 4-bit KV cache.
+- **Almost twice the context, with vision**: 242K tokens instead of 128K, or the full 262K with a 4-bit KV cache. A card that also drives the display holds less: 148K and 228K with 2 GB left free for it (see [Room for the Display](#room-for-the-display)).
 - **As precise as the baseline**: on code its weights predict within 0.5% of the baseline's, its KV cache costs less than the baseline's, and the benchmarks are within noise.
 - **Tool calls work**: the script uses a fixed chat template for coding agents.
 
@@ -84,6 +85,8 @@ The largest contexts that fit:
 | `q8/q4` | 241,664 | 253,952 |
 | `q4/q4` | 262,144 (the full window) | 262,144 |
 | `q8` | 155,648 | 184,320 |
+
+These leave azllm's default 768 MiB of the GPU free. With the room a desktop needs, they are smaller: see [Room for the Display](#room-for-the-display).
 
 The server keeps the previous request's cache, so a conversation that grows is not read again: a 219K-token prompt took 147 seconds to read, and the next request, the same prompt plus 15K new tokens, 15 seconds.
 
@@ -182,6 +185,21 @@ Starting is not proof that a context works, since a long prompt needs extra memo
 2. The answer left out the first line, `try {`, and copied the other 15 exactly.
 
 With a full context the baseline slows down to 55 tok/s; azllm keeps 132 to 162 tok/s.
+
+### Room for the Display
+
+The capacities above leave each engine's default free memory on the GPU: 768 MiB for azllm. On our computer the same RTX 4090 also drives the display, and the desktop holds about 1 GB of its memory: Xorg, gnome-shell and the open windows, which `nvidia-smi` lists as type `G`. It grows as windows open. With the desktop running, azllm `q8/q4` at 241,664 tokens and even at 221,184 refuses to start, with `does not fit as asked (1 slot(s), context 241664 per slot, KV q8/q4): it would need prefill buffers -ub 512, prefill FP16 weight blocks of 2048 rows`.
+
+The KV cache is not what grows: azllm reserves it whole at start. What grows is the desktop, and azllm's cache of CUDA graphs. So the packaged project keeps 2 GB free after loading, with `-fitt 2048`, and serves the largest contexts that start with that room, found as above, 4,096 tokens apart, with vision and the desktop running:
+
+| azllm KV cache | Above, 768 MiB free | 2 GB free, desktop running |
+|---|---:|---:|
+| `q8/q4` | 241,664 | 151,552 |
+| `q4/q4` | 262,144 | 233,472 |
+
+The room costs `q8/q4` about 90K tokens and `q4/q4` only 29K, although `q4/q4` needs fewer bytes per token. Near the `q8/q4` limit, what does not fit is the full-size prefill buffers, not the KV cache: every refusal asks for smaller prefill buffers. With the room for a display, `q4/q4` is the azllm configuration with the most context. Decode speed hardly depends on the context size (228.5 tok/s at 241,664 tokens with vision, 230.4 at 131,072 without), so the speeds of this report hold for the smaller contexts.
+
+We did not measure the other engines again with the display: their capacities above leave their default free memory, and may not start next to a desktop.
 
 ## Precision
 

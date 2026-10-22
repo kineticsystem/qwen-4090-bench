@@ -42,6 +42,12 @@ bit count.
   \item Speeds were measured with the card at its stock 450\,W limit. The host reset once,
         without a GPU error in the log, during back-to-back compute-bound runs; thereafter a
         guard logged temperatures every 10\,s (peak 80\,$^\circ$C) and never had to pause.
+  \item The capacity limits leave each engine's default free memory on the GPU (768\,MiB for
+        azllm), but our card also drives the display, whose desktop holds about 1\,GB and grows
+        as windows open. Next to it, azllm with \texttt{q8/q4} KV refuses 221{,}184 tokens. Our
+        packaged servers keep 2\,GB free and serve 151{,}552 tokens (\texttt{q8/q4}) and
+        233{,}472 (\texttt{q4/q4}); the KV cache is reserved whole at start, so the room is for
+        the desktop and the CUDA graphs. We did not measure the other engines again this way.
   \item azllm and NInfer are young projects maintained by few people, and both need weight
         files of their own.
 \end{itemize}
