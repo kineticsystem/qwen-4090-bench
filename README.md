@@ -4,7 +4,7 @@
 
 This repository is a benchmark. I wanted to know how to run a large language model on my own computer, with one **NVIDIA GeForce RTX 4090** (24 GB), as fast as possible and without losing quality.
 
-I used one model, **Qwen3.8-27B**, and compared four different *inference engines*, the programs that run it:
+I used one model, **Qwen3.8-27B**, and compared four different *inference engines*:
 
 - **llama.cpp**, the usual choice, as the reference: the baseline;
 - **OpenJet**, **NInfer** and **azllm**, three engines written specially for this family of models.
