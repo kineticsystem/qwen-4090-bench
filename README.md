@@ -62,7 +62,7 @@ How the measurements were made, and how to reproduce them, is in the [research r
 
 - **An NVIDIA GeForce RTX 4090** and its driver, version 580 or newer.
 - **Linux, Docker and the NVIDIA Container Toolkit.** Please refer to [Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/) and [Installing the NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
-- **About 75 GB of disk**: 54 GB of models and 20 GB for the image and the builds.
+- **About 83 GB of disk**: 62 GB of models and 20 GB for the image and the builds.
 - **32 GB of RAM** to compile OpenJet.
 
 ## Install
@@ -80,7 +80,7 @@ Build the image and compile the engines, about 30 minutes:
 ./docker/dock.sh build
 ```
 
-Download the models into `models/`, about 54 GB:
+Download the models into `models/`, about 62 GB:
 
 ```
 ./docker/dock.sh models
@@ -108,6 +108,16 @@ curl http://127.0.0.1:8085/v1/chat/completions -H 'Content-Type: application/jso
 The first request to a model waits for its engine to load, one to two minutes. Only one model fits on the GPU at a time: asking for another one stops the current engine. A model is unloaded after 30 idle minutes.
 
 One more model is not in the results: `azllm-text` is `azllm` without the vision encoder, for programs that send no images. It is as fast, and it starts with about 1 GB more of the GPU free, when the desktop leaves too little room for `azllm`.
+
+Three more serve the voice of [StepIt Speech](https://github.com/kineticsystem/stepit-speech), whose speech server keeps about 5.3 GB of the GPU for its speech-to-text and its voice. Each has an 8K context, no vision and no thinking:
+
+| Model | Engine and weights | GPU | For |
+|---|---|---:|---|
+| `stepit-macro-bonsai` | llama.cpp b11840 (`llama-cpp-upstream`), Bonsai 2 27B, ternary Q2_0, 7.6 GB | 8.2 GB | The voice: llama.cpp enforces the JSON schema StepIt Speech asks for. |
+| `stepit-macro` | llama.cpp (TurboQuant fork), Qwen3.8-27B UD-Q4_K_XL | 18.4 GB | The same, with Qwen3.8-27B: as accurate, 10 GB more. |
+| `azllm-voice` | azllm, Qwen3.8-27B TQ_L, `--free 4864` | 17.7 GB | Kept for comparison: azllm ignores JSON schemas and `tool_choice: required`. |
+
+`engines/llama-cpp-upstream` is a second upstream llama.cpp, recent enough for Bonsai's Q2_0 (b11555 or newer); `engines/llama.cpp` stays at the commit OpenJet was measured with. [`scripts/serve/bonsai.sh`](scripts/serve/bonsai.sh) runs it with the sampling of Bonsai's model card. `azllm.sh` and `baseline.sh` take `--` and then options for their server, which override theirs, e.g. `--chat-template-kwargs '{"enable_thinking":false}'`; `azllm.sh` also takes `--free MB`, the GPU memory azllm leaves free, 2048 by default.
 
 ### opencode
 

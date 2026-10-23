@@ -1,7 +1,7 @@
 #!/bin/bash
 # Download every model into /models (../models on the host, or $MODELS_DIR), each pinned to
 # the revision that was measured and checked against its SHA-256. Interrupted downloads
-# resume; files already there and correct are skipped. About 54 GB in total.
+# resume; files already there and correct are skipped. About 62 GB in total.
 #
 #   unsloth/  Qwen3.8-27B-UD-Q4_K_XL.gguf, 17.6 GB  baseline and OpenJet
 #             mmproj-F16.gguf, 0.9 GB               vision, baseline and azllm
@@ -9,6 +9,7 @@
 #   tqllm/    Qwen3.8-27B-TQ_L.gguf, 14.7 GB        azllm
 #             drafters/, mtp-vocab/                 azllm's DFlash2 drafter, 0.8 GB
 #             chat_template_v22.jinja               the fixed chat template of TQ3_4S-v2
+#   prismml/  Ternary-Bonsai-2-27B-Q2_0.gguf, 7.6 GB  Bonsai 2 27B, ternary, upstream llama.cpp
 set -euo pipefail
 M=${MODELS:-/models}
 HF=https://huggingface.co
@@ -43,6 +44,12 @@ get $T/Qwen3.8-27B-TQ_L.gguf tqllm/Qwen3.8-27B-TQ_L.gguf \
 get $T/drafters/Qwen3.8-27B-DFlash2-TQ3.gguf tqllm/drafters/Qwen3.8-27B-DFlash2-TQ3.gguf \
     7f12a657b8c039f6748eb665c650fd0de47284cd8975847fa4e6757cf77a07bd
 get $T/mtp-vocab/atx_65536.txt tqllm/mtp-vocab/atx_65536.txt
+
+# Bonsai 2 27B, ternary weights in Q2_0, which upstream llama.cpp reads from b11555 on: the
+# "prism-fork-required" of its name is historical.
+P=$HF/prism-ml/Ternary-Bonsai-2-27B-gguf-dev/resolve/2a263ef827a2e215f3ddd14c9871a5bd1800fcbc
+get $P/Ternary-Bonsai-2-27B-Q2_0-prism-fork-required.gguf prismml/Ternary-Bonsai-2-27B-Q2_0.gguf \
+    4f99aed01b8a877e153f9aa6569a4440fe17c59701cc0953e36d7f460549e70e
 
 # The fixed chat template is embedded in the TQ3_4S-v2 file: read it from the first 40 MB,
 # the GGUF header, instead of downloading 14.5 GB.

@@ -10,7 +10,7 @@
 SERVICE=qwen-4090-bench
 
 # The engines, in ../engines, that the container builds and runs.
-ENGINES=(llama.cpp llama-cpp-turboquant open-jet ninfer-4090 azllm llama-swap)
+ENGINES=(llama.cpp llama-cpp-turboquant llama-cpp-upstream open-jet ninfer-4090 azllm llama-swap)
 
 function display_usage() {
     echo -e "\nUsage: ./dock.sh <command>\n
