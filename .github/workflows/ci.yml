@@ -52,15 +52,17 @@ jobs:
           (cd engines/llama-swap/ui && npm ci --no-audit --no-fund && npm run build)
           (cd engines/llama-swap && go build -tags embed_ui -o ../../build/llama-swap/llama-swap .)
       - name: Load the configuration
-        # llama-swap starts with scripts/llama-swap.yaml, whose models it only lists.
+        # llama-swap starts with scripts/llama-swap.yaml, whose models it only lists; it
+        # must list every model of the file, whatever their number.
         run: |
           build/llama-swap/llama-swap -config scripts/llama-swap.yaml -listen 127.0.0.1:8085 &
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:8085/v1/models && break; sleep 1; done
           curl -sf http://127.0.0.1:8085/v1/models | python3 -c "
-          import json, sys
-          ids = [m['id'] for m in json.load(sys.stdin)['data']]
+          import json, sys, yaml
+          ids = sorted(m['id'] for m in json.load(sys.stdin)['data'])
+          want = sorted(yaml.safe_load(open('scripts/llama-swap.yaml'))['models'])
           print(ids)
-          assert len(ids) == 7, ids"
+          assert ids == want, (ids, want)"
 
   image:
     name: image
