@@ -6,14 +6,14 @@
 # has to validate the answer itself and ask again.
 #
 # Usage: scripts/serve/bonsai-ninfer.sh [--ctx N] [--kv TYPE] [--drafts N] [--ngram chain|off] [--port N] [-- ninfer-serve options]
-#   --ctx     context (default 253952, 254K, with the 4-bit KV)
+#   --ctx     context (default 262144, 256K, the most the model takes, with the 4-bit KV)
 #   --drafts  MTP drafts per step (default 3)
 #   --ngram   chain extends the MTP drafts with n-gram drafts: helps JSON and edits, not prose
 #   --kv      KV cache type (default rk4v4-e8)
 #   --        the rest goes to ninfer-serve as it is
 set -euo pipefail
 . "$(dirname "$0")/common.sh"
-ctx=253952 kv=rk4v4-e8 drafts=3 ngram=chain extra=()
+ctx=262144 kv=rk4v4-e8 drafts=3 ngram=chain extra=()
 while [ $# -gt 0 ]; do case "$1" in
   --ctx) ctx=$2; shift 2 ;;
   --kv) kv=$2; shift 2 ;;
