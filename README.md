@@ -137,8 +137,6 @@ curl http://127.0.0.1:8085/v1/chat/completions -H 'Content-Type: application/jso
 
 The first request to a model waits for its engine to load, one to two minutes. Only one model fits on the GPU at a time: asking for another one stops the current engine. The last model asked for stays loaded, however long it is idle, and keeps its part of the GPU: stop the container to free it.
 
-One more model is not in the results: `azllm-text` is `azllm` without the vision encoder, for programs that send no images. It is as fast, and it starts with about 1 GB more of the GPU free, when the desktop leaves too little room for `azllm`.
-
 Three more serve Bonsai 2 27B, PrismML's ternary build of Qwen3.8-27B, with no vision and no thinking:
 
 | Model | Engine | Context | GPU | For |
@@ -204,7 +202,6 @@ azllm and NInfer reserve the memory of the whole context when they start, so a l
 | `ninfer-fast` | 192,512 | 77,824 | 2,171 MiB |
 | `azllm` | 241,664 | 151,552 | 2.34 GB with `-ub 512`, azllm's report |
 | `azllm-228k` | 262,144 | 233,472 | 2.51 GB with `-ub 512 --gemm-rows 2048`, azllm's report |
-| `azllm-text` | | 151,552 | 3.12 GB, azllm's report |
 
 azllm checks the room itself: [`scripts/serve/azllm.sh`](scripts/serve/azllm.sh) runs it with `-fitt 2048`, and with `-fitl off`, so it refuses a context that does not fit instead of starting with smaller buffers or a shorter context than I asked for. The other engines have no such setting: their contexts were measured with `nvidia-smi`, with at least 2,048 MiB free as the test, and the desktop moves the result by up to 400 MiB from one start to the next, so NInfer and OpenJet get one step below the last context that passed.
 
@@ -220,7 +217,9 @@ For more context, leave less room: pass `--ctx` to the scripts in [`scripts/llam
 
 **`./docker/dock.sh start` ends with `The container did not start`.** The lines above it are the output of the container and say why; the container is stopped.
 
-**opencode seems to think forever, and `./docker/dock.sh logs` shows `does not fit as asked` and `starting azllm failed`.** azllm does not fit next to what the display holds. NInfer says `requested Engine runtime reservation requires … bytes, but only … bytes are available`, and OpenJet `out of memory`. While a model loads, llama-swap writes its progress in the reasoning field, so opencode shows it as thinking; when azllm gives up, opencode sends the request again and the load starts over. Close windows that use the GPU, give azllm a smaller `--ctx`, or, for a program that sends no images, use `azllm-text`: see [Room for the Display](#room-for-the-display).
+**opencode seems to think forever, and `./docker/dock.sh logs` shows `does not fit as asked` and `starting azllm failed`.** azllm does not fit next to what the display holds. NInfer says `requested Engine runtime reservation requires … bytes, but only … bytes are available`, and OpenJet `out of memory`. While a model loads, llama-swap writes its progress in the reasoning field, so opencode shows it as thinking; when azllm gives up, opencode sends the request again and the load starts over. Close windows that use the GPU, or give azllm smaller buffers, as azllm's message asks, or a smaller `--ctx`: see [Room for the Display](#room-for-the-display).
+
+**The GPU fills and empties with every message in opencode, and `./docker/dock.sh logs` shows two models loading in turn.** opencode writes the titles of its sessions with its `small_model`, and answers with the model of the session; only one model fits on the GPU, so when the two differ, llama-swap swaps them on every message, one to two minutes each. Make the model you use the default of both: `./opencode-config.sh --default azllm`, then restart opencode. Choosing a model with `/models` changes only the model of the session.
 
 **A client rejects azllm's tool calls with `Expected string`, e.g. opencode writing a `.json` file.** The azllm binary was built without the patch of [Fixes to the Engines](#fixes-to-the-engines): rebuild it with `./docker/dock.sh build --force azllm`, then restart the container.
 
