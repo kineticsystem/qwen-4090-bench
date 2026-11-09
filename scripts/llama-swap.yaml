@@ -14,8 +14,9 @@ logToStdout: both
 # While a model loads, tell the client in the reasoning field: opencode shows the load
 # instead of an answer that seems stuck.
 sendLoadingState: true
-# Unload a model after 30 idle minutes, to free the GPU.
-globalTTL: 1800
+# Never unload a model when idle: the last one asked for stays loaded, so the next request
+# does not wait for a load. Another model replaces it.
+globalTTL: 0
 # A server can take a few seconds to free 22 GB of GPU memory.
 unloadTimeout: 30
 startPort: 5800

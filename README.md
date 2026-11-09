@@ -135,7 +135,7 @@ curl http://127.0.0.1:8085/v1/chat/completions -H 'Content-Type: application/jso
   -d '{"model": "azllm", "messages": [{"role": "user", "content": "Hello"}]}'
 ```
 
-The first request to a model waits for its engine to load, one to two minutes. Only one model fits on the GPU at a time: asking for another one stops the current engine. A model is unloaded after 30 idle minutes.
+The first request to a model waits for its engine to load, one to two minutes. Only one model fits on the GPU at a time: asking for another one stops the current engine. The last model asked for stays loaded, however long it is idle, and keeps its part of the GPU: stop the container to free it.
 
 One more model is not in the results: `azllm-text` is `azllm` without the vision encoder, for programs that send no images. It is as fast, and it starts with about 1 GB more of the GPU free, when the desktop leaves too little room for `azllm`.
 
