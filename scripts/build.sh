@@ -5,7 +5,8 @@
 # OpenJet itself, and llama-swap's web UI.
 #
 # Usage: scripts/build.sh [--force] [engine...]
-#   engine   llama.cpp, llama-cpp-turboquant, open-jet, ninfer-4090, azllm, llama-swap
+#   engine   llama.cpp, llama-cpp-turboquant, llama-cpp-upstream, open-jet, ninfer-4090, ninfer-bonsai, azllm,
+#            llama-swap
 #            (default: all, in that order: OpenJet needs llama.cpp)
 #   --force  rebuild even when the engine's binary is already there
 #
@@ -19,7 +20,7 @@ E=$WS/engines B=$WS/build
 JOBS=$(nproc)
 force=0; engines=()
 for a in "$@"; do [ "$a" = --force ] && force=1 || engines+=("$a"); done
-[ ${#engines[@]} -gt 0 ] || engines=(llama.cpp llama-cpp-turboquant open-jet ninfer-4090 azllm llama-swap)
+[ ${#engines[@]} -gt 0 ] || engines=(llama.cpp llama-cpp-turboquant llama-cpp-upstream open-jet ninfer-4090 ninfer-bonsai azllm llama-swap)
 
 # Skip an engine whose output already exists, unless --force.
 built() { [ $force = 0 ] && [ -e "$1" ] && echo "== $2: already built ($1)"; }
@@ -58,6 +59,15 @@ for engine in "${engines[@]}"; do
         -DCMAKE_BUILD_TYPE=Release -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=89 \
         -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=OFF
       cmake --build $B/llama-cpp-turboquant -j $JOBS --target llama-server ;;
+    llama-cpp-upstream)
+      # A recent upstream llama.cpp, apart from engines/llama.cpp, which stays at the commit
+      # OpenJet was measured with: Bonsai's ternary Q2_0 needs b11555 or newer.
+      built $B/llama-cpp-upstream/bin/llama-server llama-cpp-upstream && continue
+      echo "== llama-cpp-upstream (Bonsai 2, ternary Q2_0)"
+      cmake -S $E/llama-cpp-upstream -B $B/llama-cpp-upstream -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=89 \
+        -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=OFF
+      cmake --build $B/llama-cpp-upstream -j $JOBS --target llama-server ;;
     open-jet)
       built $E/open-jet/megakernel/libqwen38mk_mixed.so open-jet && continue
       echo "== OpenJet (the mixed-quant engine reads UD-Q4_K_XL; about 11 GB of RAM to compile)"
@@ -69,6 +79,12 @@ for engine in "${engines[@]}"; do
       cmake -S $E/ninfer-4090 -B $B/ninfer-4090 -G Ninja -DCMAKE_BUILD_TYPE=Release \
         -DNINFER_BUILD_APPS=ON -DBUILD_TESTING=OFF -DNINFER_BUILD_BENCHMARKS=OFF
       cmake --build $B/ninfer-4090 -j $JOBS --target ninfer-serve ;;
+    ninfer-bonsai)
+      built $B/ninfer-bonsai/apps/ninfer-serve ninfer-bonsai && continue
+      echo "== NInfer for Bonsai 2 27B (ternary weights, JGamboa's fork)"
+      cmake -S $E/ninfer-bonsai -B $B/ninfer-bonsai -G Ninja -DCMAKE_BUILD_TYPE=Release \
+        -DNINFER_BUILD_APPS=ON -DBUILD_TESTING=OFF -DNINFER_BUILD_BENCHMARKS=OFF
+      cmake --build $B/ninfer-bonsai -j $JOBS --target ninfer-serve ;;
     azllm)
       built $B/azllm/tqserve azllm && continue
       echo "== azllm"

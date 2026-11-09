@@ -66,3 +66,4 @@
 {"label": "prof-azllm-q4q4-262k", "greedy": false, "think": false, "mean_tps": 228.7845675618404, "median_tps": 240.58265348330667, "per_prompt": {"code": 300.5, "code2": 275.9, "prose": 130.9, "explain": 176.4, "math": 283.8, "list": 205.8}}
 {"label": "prof-azllm-q4q4-262k", "greedy": false, "think": true, "mean_tps": 195.08481152254765, "median_tps": 199.35368127589274, "per_prompt": {"code": 205.6, "code2": 193.1, "prose": 124.3, "explain": 147.5, "math": 272.9, "list": 227.2}}
 {"label": "prof-azllm-q4q4-262k-long", "greedy": false, "think": false, "mean_tps": 145.5757296913397, "median_tps": 153.49488736951616, "per_prompt": {"long-summary": 160.4, "long-review": 122.8, "long-tests": 153.5}}
+{"label": "bonsai-ninfer", "greedy": false, "think": false, "mean_tps": 264.77590420522836, "median_tps": 278.2701533858433, "per_prompt": {"code": 292.9, "code2": 280.9, "prose": 185.8, "explain": 240.4, "math": 313.0, "list": 275.7}}

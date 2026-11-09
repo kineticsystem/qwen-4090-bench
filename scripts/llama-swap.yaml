@@ -37,11 +37,41 @@ models:
     useModelName: Qwen3.8-27B
     metadata: {context: 151552, output: 16384}
 
+  azllm-voice:
+    name: "azllm, 8K, text only (for speech-to-speech, which needs the GPU for its voice)"
+    cmd: ${serve}/azllm.sh --no-vision --ctx 8192 --free 4864 --port ${PORT} -- -ub 512 --gemm-rows 2048
+    useModelName: Qwen3.8-27B
+    metadata: {context: 8192, output: 4096}
+
   azllm-228k:
     name: "azllm, 228K, vision, 4-bit KV"
     cmd: ${serve}/azllm.sh --kv q4/q4 --ctx 233472 --port ${PORT}
     useModelName: Qwen3.8-27B
     metadata: {context: 233472, output: 16384}
+
+  stepit-macro:
+    name: "StepIt Macro voice: Qwen3.8-27B on llama.cpp, 8K, text only, no thinking (it enforces JSON schemas, which the voice bridge needs)"
+    cmd: ${serve}/baseline.sh --no-vision --ctx 8192 --port ${PORT} -- --chat-template-kwargs '{"enable_thinking":false}'
+    useModelName: Qwen3.8-27B
+    metadata: {context: 8192, output: 4096}
+
+  stepit-macro-bonsai:
+    name: "StepIt Macro voice: Bonsai 2 27B, ternary, llama.cpp, 8K, no thinking (7.6 GB)"
+    cmd: ${serve}/bonsai.sh --ctx 8192 --port ${PORT} -- --chat-template-kwargs '{"enable_thinking":false}'
+    useModelName: Ternary-Bonsai-2-27B
+    metadata: {context: 8192, output: 4096}
+
+  bonsai-ninfer:
+    name: "Bonsai 2 27B, ternary, NInfer, 256K, MTP 3 + n-gram, no thinking, no JSON schemas"
+    cmd: ${serve}/bonsai-ninfer.sh --port ${PORT}
+    useModelName: Ternary-Bonsai-2-27B
+    metadata: {context: 262144, output: 16384}
+
+  bonsai-ninfer-mtp:
+    name: "Bonsai 2 27B, ternary, NInfer, 256K, MTP 3 alone, no thinking, no JSON schemas"
+    cmd: ${serve}/bonsai-ninfer.sh --ngram off --port ${PORT}
+    useModelName: Ternary-Bonsai-2-27B
+    metadata: {context: 262144, output: 16384}
 
   ninfer-long:
     name: "NInfer long, 172K, vision"

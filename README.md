@@ -9,15 +9,17 @@ I used one model, **Qwen3.8-27B**, and compared four different *inference engine
 - **llama.cpp**, the usual choice, as the reference: the baseline;
 - **OpenJet**, **NInfer** and **azllm**, three engines written specially for this family of models.
 
-<p align="center"><img src="doc/img/summary.svg" width="80%" alt="Decode speed and served context of the seven models on one RTX 4090: azllm is the fastest"></p>
+I also tried **Bonsai 2 27B**, PrismML's ternary build of Qwen3.8-27B: the same model, with each weight quantized to -1, 0 or +1, on a fork of NInfer that reads it.
 
-At full precision the model does not fit in 24 GB, so each engine uses a compressed copy of it, a *quantized* model, with about 4 to 5 bits per weight instead of 16. llama.cpp and OpenJet read the same file; NInfer and azllm each read a format of their own, so their copies differ slightly.
+<p align="center"><img src="doc/img/summary.svg" width="80%" alt="Decode speed and served context of the models on one RTX 4090: Bonsai 2 27B on NInfer is the fastest, then azllm, the fastest with Qwen3.8-27B"></p>
 
-For each engine I measured the speed, the accuracy, the largest context that fits on the card, with and without the model's vision, and how much precision is lost by compressing the memory of the context, the KV cache.
+At full precision the model does not fit in 24 GB, so each engine uses a compressed copy of it, a *quantized* model, with about 4 to 5 bits per weight instead of 16. llama.cpp and OpenJet read the same file; NInfer and azllm each read a format of their own, so their copies differ slightly. Bonsai goes much further, with less than 2 bits per weight: 6.4 GB instead of about 19 GB.
 
-The best engine, azllm, is 2.5 times faster than llama.cpp, as precise, and has the most context: 228K tokens with vision, while leaving 2 GB of the card free for the display. The details are in the [research report](doc/research/REPORT.md) and the [paper](doc/research/Serving-Qwen3.8-27B-on-a-single-RTX-4090.pdf).
+For each engine I measured the speed, the accuracy, the largest context that fits on the card, with and without the model's vision, and how much precision is lost by compressing the memory of the context, the KV cache. For Bonsai I measured only the speed.
 
-The repository also packages every configuration I measured, ready to use: one Docker container with the four engines and [llama-swap](https://github.com/mostlygeek/llama-swap), which starts the engine a request asks for. Any program that speaks the OpenAI API can use it. I used the coding agent [opencode](https://opencode.ai), and provide a script that configures it.
+The best engine, azllm, is 2.5 times faster than llama.cpp, as precise, and has the most context: 228K tokens with vision, while leaving 2 GB of the card free for the display. Bonsai on NInfer is faster still, 264.8 tok/s with its full context of 256K tokens in 11.7 GB of the card, as good at arithmetic, but it solves 150 of 164 HumanEval coding problems against 157 for azllm. The details are in the [research report](doc/research/REPORT.md) and the [paper](doc/research/Serving-Qwen3.8-27B-on-a-single-RTX-4090.pdf).
+
+The repository also packages every configuration I measured, ready to use: one Docker container with the four engines, the fork of NInfer for Bonsai, and [llama-swap](https://github.com/mostlygeek/llama-swap), which starts the engine a request asks for. Any program that speaks the OpenAI API can use it. I used the coding agent [opencode](https://opencode.ai), and provide a script that configures it.
 
 > [!IMPORTANT]
 > This project is built and tuned for the RTX 4090 (24 GB, `sm_89`) only. The engines are compiled for that GPU, and the context sizes fill its memory, less the room the display needs: see [Room for the Display](#room-for-the-display).
@@ -25,6 +27,7 @@ The repository also packages every configuration I measured, ready to use: one D
 ## Table of Contents <!-- omit in toc -->
 
 - [The Results](#the-results)
+- [What Bonsai Shows About Qwen3.8](#what-bonsai-shows-about-qwen38)
 - [Prerequisites](#prerequisites)
 - [Install](#install)
 - [Use It](#use-it)
@@ -49,6 +52,7 @@ Decode speed on six short prompts, with the recommended sampling and thinking of
 | `ninfer-fast` | NInfer | 76K | yes | 166.0 tok/s | 97.2% | 95.7% |
 | **`azllm`** | azllm | 148K | yes | **228.6 tok/s** | 95.2% | 95.7% |
 | **`azllm-228k`** | azllm | **228K** | yes | **228.8 tok/s** | 96.8% | 95.7% |
+| `bonsai-ninfer` | NInfer fork, Bonsai 2 27B | 256K | no | 264.8 tok/s | 96.0% | 91.5% |
 
 **azllm is the best of the engines I tested.** It is 2.5 times faster than the baseline, about 300 tok/s on code, and as precise: its weights predict code within 0.5% of the baseline's, and the accuracy differences are within the noise of the tests.
 
@@ -56,13 +60,39 @@ The context is the one each model is served with here, which keeps 2 GB of the G
 
 For long coding sessions, use **`azllm-228k`**: it has the most context, its 4-bit KV cache costs almost nothing in precision, and it is as fast on short prompts.
 
-How the measurements were made, and how to reproduce them, is in the [research report](doc/research/REPORT.md).
+**Bonsai 2 27B is faster, but writes worse code.** `bonsai-ninfer` decodes 16% faster than azllm, with the model's full context in 11.7 GB of the card. On GSM8K it solves 240 of 250 problems, within the noise of the Qwen3.8 models (238 to 244). On HumanEval it solves 150 of 164, against 156 to 158 for every Qwen3.8 model: that gap is larger than the noise, most likely the price of its ternary weights. It suits work where speed and context matter more than the last points of precision.
+
+How the measurements were made, and how to reproduce them, is in the [research report](doc/research/REPORT.md). The image at the top is drawn by [`doc/img/summary.py`](doc/img/summary.py), from these speeds and `bonsai-ninfer` measured the same way, at 256K: change its list and run it again when a result changes.
+
+## What Bonsai Shows About Qwen3.8
+
+Bonsai 2 27B is PrismML's ternary build of Qwen3.8-27B: the same architecture with weights -1, 0 or +1. On NInfer, with its full context of 256K tokens, it decodes 264.8 tok/s on the six short prompts of [The Results](#the-results), against 228.6 for azllm, the fastest engine with Qwen3.8 (see [Use It](#use-it)). Two things make it fast, and only one of them carries over to Qwen3.8:
+
+- **The ternary weights.** NInfer reads 6.4 GB per token instead of about 19 GB, which is most of the gain on prose. Qwen3.8 cannot have it without losing precision.
+- **The drafts.** Bonsai runs with MTP 3 and n-gram drafts, `--ngram chain --ngram-n 4`. The n-gram drafts copy text that is already in the context, so a round that repeats code, JSON, a tool call or a file being edited accepts 10 tokens or more. A short key of 4 tokens is the fastest on new text: 350 tok/s on code, against 312 with the default of 8. On prose there is nothing to copy, and the speed does not change.
+
+The retrained MTP layer of Bonsai does not carry over: Qwen3.8's MTP layer is its own, trained on its outputs.
+
+**NInfer.** `engines/ninfer-4090`, which the `ninfer-*` models run, has no n-gram drafts. JGamboa's fork, `engines/ninfer-bonsai`, has them, and reads Qwen3.8 too, including the official artifact that [`scripts/download-models.sh`](scripts/download-models.sh) saves as `ninfer/qwen3_8_27b_dflash2.ninfer`. The fork's author measured Qwen3.8 on Windows, with the same RTX 4090 and `rk4v4-e8` KV, thinking off unless the row says otherwise:
+
+| Workload | MTP 3 | MTP 3 + n-gram | DFlash2, 6 drafts |
+|---|---:|---:|---:|
+| Edit-style prompts | 152 tok/s | **289 tok/s** | 215 tok/s |
+| Prose | 97 tok/s | 97 tok/s | 96 tok/s |
+| Server, edits of 7K-11K-token files, thinking on | not measured | **258 tok/s** | 139 tok/s |
+
+The n-gram drafts cost a second set of CUDA graphs, about 2.5% of the KV memory, so the context that leaves 2 GB free for the display is a little smaller. The fork also publishes [`jgamboa/Qwen3.8-27B-NInfer-4090`](https://huggingface.co/jgamboa/Qwen3.8-27B-NInfer-4090), `qwen3_8_27b_a8_mtpq4q5.ninfer`, 18.9 GiB: the same main weights, byte for byte, with int8 prefill, which processes a prompt about 1.9 times faster (a 64K-token prompt in 14.8 s instead of 27.5 s), and a Q4/Q5 MTP layer, about 3% faster decode.
+
+**llama.cpp.** The Bonsai model on upstream llama.cpp, `stepit-macro-bonsai`, uses no drafts, so it has nothing to give the baseline. The TurboQuant fork that the baseline runs can take several draft types, e.g. `--spec-type ngram-mod,draft-mtp`, but it does not chain them as NInfer does: for each round it uses the first type that drafts anything, n-gram drafts when the context has a match and MTP otherwise. It also has `--spec-chain` and an adaptive MTP depth, `draft-mtp-adaptive`. The baseline uses MTP with 2 drafts alone.
+
+> [!NOTE]
+> None of this is measured in this repository yet. On prose, azllm, at 228.6 tok/s, stays the fastest; on code and edits, NInfer with n-gram drafts may catch up with it.
 
 ## Prerequisites
 
 - **An NVIDIA GeForce RTX 4090** and its driver, version 580 or newer.
 - **Linux, Docker and the NVIDIA Container Toolkit.** Please refer to [Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/) and [Installing the NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
-- **About 75 GB of disk**: 54 GB of models and 20 GB for the image and the builds.
+- **About 83 GB of disk**: 62 GB of models and 20 GB for the image and the builds.
 - **32 GB of RAM** to compile OpenJet.
 
 ## Install
@@ -80,7 +110,7 @@ Build the image and compile the engines, about 30 minutes:
 ./docker/dock.sh build
 ```
 
-Download the models into `models/`, about 54 GB:
+Download the models into `models/`, about 62 GB:
 
 ```
 ./docker/dock.sh models
@@ -108,6 +138,23 @@ curl http://127.0.0.1:8085/v1/chat/completions -H 'Content-Type: application/jso
 The first request to a model waits for its engine to load, one to two minutes. Only one model fits on the GPU at a time: asking for another one stops the current engine. A model is unloaded after 30 idle minutes.
 
 One more model is not in the results: `azllm-text` is `azllm` without the vision encoder, for programs that send no images. It is as fast, and it starts with about 1 GB more of the GPU free, when the desktop leaves too little room for `azllm`.
+
+Three more serve the voice of [StepIt Speech](https://github.com/kineticsystem/stepit-speech), whose speech server keeps about 5.3 GB of the GPU for its speech-to-text and its voice. Each has an 8K context, no vision and no thinking:
+
+| Model | Engine and weights | GPU | For |
+|---|---|---:|---|
+| `stepit-macro-bonsai` | llama.cpp b11840 (`llama-cpp-upstream`), Bonsai 2 27B, ternary Q2_0, 7.6 GB | 8.2 GB | The voice: llama.cpp enforces the JSON schema StepIt Speech asks for. |
+| `stepit-macro` | llama.cpp (TurboQuant fork), Qwen3.8-27B UD-Q4_K_XL | 18.4 GB | The same, with Qwen3.8-27B: as accurate, 10 GB more. |
+| `azllm-voice` | azllm, Qwen3.8-27B TQ_L, `--free 4864` | 17.7 GB | Kept for comparison: azllm ignores JSON schemas and `tool_choice: required`. |
+
+Two more serve Bonsai 2 27B fast, with its full context. They run on `engines/ninfer-bonsai`, JGamboa's NInfer, which reads ternary weights, with an MTP layer retrained on Bonsai's outputs. NInfer refuses JSON schemas, so a client validates each answer itself:
+
+| Model | Context | GPU | Speed |
+|---|---:|---:|---|
+| `bonsai-ninfer` | 256K | 11.7 GB | MTP 3 and n-gram drafts: 264.8 tok/s on the six short prompts of [The Results](#the-results); 209 tok/s on prose, 350 on code, 687 on edits |
+| `bonsai-ninfer-mtp` | 256K | 11.7 GB | MTP 3 alone: 203 tok/s on prose, 310 on code, 352 on edits |
+
+`engines/llama-cpp-upstream` is a second upstream llama.cpp, recent enough for Bonsai's Q2_0 (b11555 or newer); `engines/llama.cpp` stays at the commit OpenJet was measured with. [`scripts/serve/bonsai.sh`](scripts/serve/bonsai.sh) runs it with the sampling of Bonsai's model card. `azllm.sh` and `baseline.sh` take `--` and then options for their server, which override theirs, e.g. `--chat-template-kwargs '{"enable_thinking":false}'`; `azllm.sh` also takes `--free MB`, the GPU memory azllm leaves free, 2048 by default.
 
 ### opencode
 

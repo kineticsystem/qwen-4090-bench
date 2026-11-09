@@ -3,30 +3,36 @@
 # draft tokens, prompt cache, and the fixed froggeric v22 chat template (tool calls whose
 # arguments arrive as a JSON string fail with the official one).
 #
-# Usage: scripts/serve/azllm.sh [--ctx N] [--kv q8/q4|q4/q4|q8] [--drafts N] [--no-vision] [--port N]
+# Usage: scripts/serve/azllm.sh [--ctx N] [--kv q8/q4|q4/q4|q8] [--drafts N] [--no-vision] [--free MB] [--port N] [-- tqserve options]
 #   --ctx      context (default 151552, the most q8/q4 fits with vision and 2 GB left free;
 #              with q4/q4, 233472)
+#   --free     MB of the GPU to keep free after loading (default 2048), e.g. 6144 to leave
+#              room for the voice models of speech-to-speech
+#   --         the rest goes to tqserve as it is, e.g. -ub 512 --gemm-rows 2048, which a
+#              small --free needs: -fitl off refuses to shrink them by itself
 set -euo pipefail
 . "$(dirname "$0")/common.sh"
-ctx=151552 kv=q8/q4 drafts=7 vision=(--mmproj "$M/unsloth/mmproj-F16.gguf")
+ctx=151552 kv=q8/q4 drafts=7 free=2048 extra=() vision=(--mmproj "$M/unsloth/mmproj-F16.gguf")
 while [ $# -gt 0 ]; do case "$1" in
   --ctx) ctx=$2; shift 2 ;;
   --kv) kv=$2; shift 2 ;;
   --drafts) drafts=$2; shift 2 ;;
   --no-vision) vision=(); shift ;;
+  --free) free=$2; shift 2 ;;
   --port) PORT=$2; shift 2 ;;
+  --) shift; extra=("$@"); break ;;
   *) echo "unknown option $1" >&2; exit 1 ;;
 esac; done
 D=$M/tqllm
 need $B/azllm/tqserve $D/Qwen3.8-27B-TQ_L.gguf $D/drafters/Qwen3.8-27B-DFlash2-TQ3.gguf \
      $D/mtp-vocab/atx_65536.txt $D/chat_template_v22.jinja "${vision[@]:1}"
 # -fitl off: refuse a context that does not fit instead of silently shrinking it.
-# -fitt 2048: keep 2 GB of the GPU free after loading. The card also drives the display:
+# -fitt $free: keep 2 GB of the GPU free after loading, by default. The card also drives the display:
 # the desktop holds about 1 GB and grows as windows open, and azllm's CUDA graphs grow
 # while it runs. The KV cache does not grow: it is reserved whole at start.
-exec $B/azllm/tqserve --model $D/Qwen3.8-27B-TQ_L.gguf -fitt 2048 \
+exec $B/azllm/tqserve --model $D/Qwen3.8-27B-TQ_L.gguf -fitt $free \
   -md $D/drafters/Qwen3.8-27B-DFlash2-TQ3.gguf --draft-vocab $D/mtp-vocab/atx_65536.txt \
   --draft-max $drafts --chat-template-file $D/chat_template_v22.jinja "${vision[@]}" \
   --context $ctx --kv $kv -fitl off --prompt-cache on \
   --reasoning on --reasoning-effort medium --max-tokens 16384 \
-  --name Qwen3.8-27B --host 127.0.0.1 --port $PORT
+  --name Qwen3.8-27B --host 127.0.0.1 --port $PORT "${extra[@]}"
