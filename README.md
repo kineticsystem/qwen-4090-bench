@@ -83,7 +83,7 @@ The retrained MTP layer of Bonsai does not carry over: Qwen3.8's MTP layer is it
 
 The n-gram drafts cost a second set of CUDA graphs, about 2.5% of the KV memory, so the context that leaves 2 GB free for the display is a little smaller. The fork also publishes [`jgamboa/Qwen3.8-27B-NInfer-4090`](https://huggingface.co/jgamboa/Qwen3.8-27B-NInfer-4090), `qwen3_8_27b_a8_mtpq4q5.ninfer`, 18.9 GiB: the same main weights, byte for byte, with int8 prefill, which processes a prompt about 1.9 times faster (a 64K-token prompt in 14.8 s instead of 27.5 s), and a Q4/Q5 MTP layer, about 3% faster decode.
 
-**llama.cpp.** The Bonsai model on upstream llama.cpp, `stepit-macro-bonsai`, uses no drafts, so it has nothing to give the baseline. The TurboQuant fork that the baseline runs can take several draft types, e.g. `--spec-type ngram-mod,draft-mtp`, but it does not chain them as NInfer does: for each round it uses the first type that drafts anything, n-gram drafts when the context has a match and MTP otherwise. It also has `--spec-chain` and an adaptive MTP depth, `draft-mtp-adaptive`. The baseline uses MTP with 2 drafts alone.
+**llama.cpp.** The Bonsai model on upstream llama.cpp, `bonsai-llamacpp`, uses no drafts, so it has nothing to give the baseline. The TurboQuant fork that the baseline runs can take several draft types, e.g. `--spec-type ngram-mod,draft-mtp`, but it does not chain them as NInfer does: for each round it uses the first type that drafts anything, n-gram drafts when the context has a match and MTP otherwise. It also has `--spec-chain` and an adaptive MTP depth, `draft-mtp-adaptive`. The baseline uses MTP with 2 drafts alone.
 
 > [!NOTE]
 > None of this is measured in this repository yet. On prose, azllm, at 228.6 tok/s, stays the fastest; on code and edits, NInfer with n-gram drafts may catch up with it.
@@ -139,22 +139,17 @@ The first request to a model waits for its engine to load, one to two minutes. O
 
 One more model is not in the results: `azllm-text` is `azllm` without the vision encoder, for programs that send no images. It is as fast, and it starts with about 1 GB more of the GPU free, when the desktop leaves too little room for `azllm`.
 
-Three more serve the voice of [StepIt Speech](https://github.com/kineticsystem/stepit-speech), whose speech server keeps about 5.3 GB of the GPU for its speech-to-text and its voice. Each has an 8K context, no vision and no thinking:
+Three more serve Bonsai 2 27B, PrismML's ternary build of Qwen3.8-27B, with no vision and no thinking:
 
-| Model | Engine and weights | GPU | For |
-|---|---|---:|---|
-| `stepit-macro-bonsai` | llama.cpp b11840 (`llama-cpp-upstream`), Bonsai 2 27B, ternary Q2_0, 7.6 GB | 8.2 GB | The voice: llama.cpp enforces the JSON schema StepIt Speech asks for. |
-| `stepit-macro` | llama.cpp (TurboQuant fork), Qwen3.8-27B UD-Q4_K_XL | 18.4 GB | The same, with Qwen3.8-27B: as accurate, 10 GB more. |
-| `azllm-voice` | azllm, Qwen3.8-27B TQ_L, `--free 4864` | 17.7 GB | Kept for comparison: azllm ignores JSON schemas and `tool_choice: required`. |
+| Model | Engine | Context | GPU | For |
+|---|---|---:|---:|---|
+| `bonsai-ninfer` | `engines/ninfer-bonsai`, MTP 3 and n-gram drafts | 256K | 11.7 GB | Speed: 264.8 tok/s on the six short prompts of [The Results](#the-results); 209 tok/s on prose, 350 on code, 687 on edits |
+| `bonsai-ninfer-mtp` | `engines/ninfer-bonsai`, MTP 3 alone | 256K | 11.7 GB | Comparison: 203 tok/s on prose, 310 on code, 352 on edits |
+| `bonsai-llamacpp` | `engines/llama-cpp-upstream`, llama.cpp b11840, Q2_0 file of 7.6 GB, no drafts | 8K | 8.2 GB | JSON schemas: llama.cpp enforces `response_format`, for programs that need answers of a given shape |
 
-Two more serve Bonsai 2 27B fast, with its full context. They run on `engines/ninfer-bonsai`, JGamboa's NInfer, which reads ternary weights, with an MTP layer retrained on Bonsai's outputs. NInfer refuses JSON schemas, so a client validates each answer itself:
+`engines/ninfer-bonsai` is JGamboa's NInfer, which reads ternary weights, with an MTP layer retrained on Bonsai's outputs. NInfer refuses JSON schemas, so a client of `bonsai-ninfer` validates each answer itself.
 
-| Model | Context | GPU | Speed |
-|---|---:|---:|---|
-| `bonsai-ninfer` | 256K | 11.7 GB | MTP 3 and n-gram drafts: 264.8 tok/s on the six short prompts of [The Results](#the-results); 209 tok/s on prose, 350 on code, 687 on edits |
-| `bonsai-ninfer-mtp` | 256K | 11.7 GB | MTP 3 alone: 203 tok/s on prose, 310 on code, 352 on edits |
-
-`engines/llama-cpp-upstream` is a second upstream llama.cpp, recent enough for Bonsai's Q2_0 (b11555 or newer); `engines/llama.cpp` stays at the commit OpenJet was measured with. [`scripts/serve/bonsai.sh`](scripts/serve/bonsai.sh) runs it with the sampling of Bonsai's model card. `azllm.sh` and `baseline.sh` take `--` and then options for their server, which override theirs, e.g. `--chat-template-kwargs '{"enable_thinking":false}'`; `azllm.sh` also takes `--free MB`, the GPU memory azllm leaves free, 2048 by default.
+`engines/llama-cpp-upstream` is a second upstream llama.cpp, recent enough for Bonsai's Q2_0 (b11555 or newer); `engines/llama.cpp` stays at the commit OpenJet was measured with. [`scripts/serve/bonsai.sh`](scripts/serve/bonsai.sh) runs it with the sampling of Bonsai's model card. `azllm.sh` and `baseline.sh` take `--` and then options for their server, which override theirs, e.g. `--chat-template-kwargs '{"enable_thinking":false}'`; `azllm.sh` also takes `--free MB`, the GPU memory azllm leaves free, 2048 by default, e.g. more to leave room for another program on the GPU.
 
 ### opencode
 
@@ -207,13 +202,13 @@ azllm and NInfer reserve the memory of the whole context when they start, so a l
 | `ninfer-precise` | 204,800 | 118,784 | 2,212 MiB |
 | `ninfer-long` | 262,144 | 176,128 | 2,227 MiB |
 | `ninfer-fast` | 192,512 | 77,824 | 2,171 MiB |
-| `azllm` | 241,664 | 151,552 | 2.18 GB, azllm's report |
-| `azllm-228k` | 262,144 | 233,472 | 2.15 GB or more, azllm's report |
+| `azllm` | 241,664 | 151,552 | 2.34 GB with `-ub 512`, azllm's report |
+| `azllm-228k` | 262,144 | 233,472 | 2.51 GB with `-ub 512 --gemm-rows 2048`, azllm's report |
 | `azllm-text` | | 151,552 | 3.12 GB, azllm's report |
 
 azllm checks the room itself: [`scripts/serve/azllm.sh`](scripts/serve/azllm.sh) runs it with `-fitt 2048`, and with `-fitl off`, so it refuses a context that does not fit instead of starting with smaller buffers or a shorter context than I asked for. The other engines have no such setting: their contexts were measured with `nvidia-smi`, with at least 2,048 MiB free as the test, and the desktop moves the result by up to 400 MiB from one start to the next, so NInfer and OpenJet get one step below the last context that passed.
 
-The room costs some models more than others. `ninfer-fast` keeps a second KV cache for its DFlash2 drafter, and near the `azllm` limit what does not fit is the prefill buffers, not the KV cache. With room for a display, `azllm-228k` is the model with the most context.
+The room costs some models more than others. `ninfer-fast` keeps a second KV cache for its DFlash2 drafter, and near the `azllm` limit what does not fit is the prefill buffers, not the KV cache. So [`scripts/llama-swap.yaml`](scripts/llama-swap.yaml) gives `azllm` smaller prefill buffers, `-ub 512`, and `azllm-228k` also smaller prefill weight blocks, `--gemm-rows 2048`: with the desktop holding 0.9 GB, they did not start without them. Decode keeps its speed; a 29K-token prompt is read in 14.3 s instead of 13.0 s. With room for a display, `azllm-228k` is the model with the most context.
 
 For more context, leave less room: pass `--ctx` to the scripts in [`scripts/llama-swap.yaml`](scripts/llama-swap.yaml), and lower `-fitt` in `azllm.sh`. The contexts measured in the research, which left each engine only its default free memory, are the most each engine can start with.
 
