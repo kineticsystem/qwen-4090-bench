@@ -61,6 +61,24 @@ models:
     useModelName: Ternary-Bonsai-2-27B
     metadata: {context: 8192, output: 4096}
 
+  masterofpuppets-bonsai:
+    name: "MasterOfPuppets bots: Bonsai 2 27B, ternary, llama.cpp, 256K, 8-bit KV, no thinking"
+    cmd: ${serve}/bonsai.sh --ctx 262144 --port ${PORT} -- -ctk q8_0 -ctv q8_0 --chat-template-kwargs '{"enable_thinking":false}'
+    useModelName: Ternary-Bonsai-2-27B
+    metadata: {context: 262144, output: 16384}
+
+  bonsai-ninfer:
+    name: "Bonsai 2 27B, ternary, NInfer, 254K, MTP 3 + n-gram, no thinking, no JSON schemas"
+    cmd: ${serve}/bonsai-ninfer.sh --port ${PORT}
+    useModelName: Ternary-Bonsai-2-27B
+    metadata: {context: 253952, output: 16384}
+
+  bonsai-ninfer-mtp:
+    name: "Bonsai 2 27B, ternary, NInfer, 254K, MTP 3 alone, no thinking, no JSON schemas"
+    cmd: ${serve}/bonsai-ninfer.sh --ngram off --port ${PORT}
+    useModelName: Ternary-Bonsai-2-27B
+    metadata: {context: 253952, output: 16384}
+
   ninfer-long:
     name: "NInfer long, 172K, vision"
     cmd: ${serve}/ninfer.sh long --port ${PORT}

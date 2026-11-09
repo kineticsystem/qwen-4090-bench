@@ -23,3 +23,6 @@
 [submodule "engines/llama-cpp-upstream"]
 	path = engines/llama-cpp-upstream
 	url = https://github.com/ggml-org/llama.cpp
+[submodule "engines/ninfer-bonsai"]
+	path = engines/ninfer-bonsai
+	url = https://github.com/JGamboa/ninfer-4090-windows

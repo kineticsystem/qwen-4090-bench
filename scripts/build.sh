@@ -5,7 +5,7 @@
 # OpenJet itself, and llama-swap's web UI.
 #
 # Usage: scripts/build.sh [--force] [engine...]
-#   engine   llama.cpp, llama-cpp-turboquant, llama-cpp-upstream, open-jet, ninfer-4090, azllm,
+#   engine   llama.cpp, llama-cpp-turboquant, llama-cpp-upstream, open-jet, ninfer-4090, ninfer-bonsai, azllm,
 #            llama-swap
 #            (default: all, in that order: OpenJet needs llama.cpp)
 #   --force  rebuild even when the engine's binary is already there
@@ -20,7 +20,7 @@ E=$WS/engines B=$WS/build
 JOBS=$(nproc)
 force=0; engines=()
 for a in "$@"; do [ "$a" = --force ] && force=1 || engines+=("$a"); done
-[ ${#engines[@]} -gt 0 ] || engines=(llama.cpp llama-cpp-turboquant llama-cpp-upstream open-jet ninfer-4090 azllm llama-swap)
+[ ${#engines[@]} -gt 0 ] || engines=(llama.cpp llama-cpp-turboquant llama-cpp-upstream open-jet ninfer-4090 ninfer-bonsai azllm llama-swap)
 
 # Skip an engine whose output already exists, unless --force.
 built() { [ $force = 0 ] && [ -e "$1" ] && echo "== $2: already built ($1)"; }
@@ -79,6 +79,12 @@ for engine in "${engines[@]}"; do
       cmake -S $E/ninfer-4090 -B $B/ninfer-4090 -G Ninja -DCMAKE_BUILD_TYPE=Release \
         -DNINFER_BUILD_APPS=ON -DBUILD_TESTING=OFF -DNINFER_BUILD_BENCHMARKS=OFF
       cmake --build $B/ninfer-4090 -j $JOBS --target ninfer-serve ;;
+    ninfer-bonsai)
+      built $B/ninfer-bonsai/apps/ninfer-serve ninfer-bonsai && continue
+      echo "== NInfer for Bonsai 2 27B (ternary weights, JGamboa's fork)"
+      cmake -S $E/ninfer-bonsai -B $B/ninfer-bonsai -G Ninja -DCMAKE_BUILD_TYPE=Release \
+        -DNINFER_BUILD_APPS=ON -DBUILD_TESTING=OFF -DNINFER_BUILD_BENCHMARKS=OFF
+      cmake --build $B/ninfer-bonsai -j $JOBS --target ninfer-serve ;;
     azllm)
       built $B/azllm/tqserve azllm && continue
       echo "== azllm"

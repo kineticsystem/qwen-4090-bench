@@ -1,7 +1,7 @@
 #!/bin/bash
 # Download every model into /models (../models on the host, or $MODELS_DIR), each pinned to
 # the revision that was measured and checked against its SHA-256. Interrupted downloads
-# resume; files already there and correct are skipped. About 62 GB in total.
+# resume; files already there and correct are skipped. About 69 GB in total.
 #
 #   unsloth/  Qwen3.8-27B-UD-Q4_K_XL.gguf, 17.6 GB  baseline and OpenJet
 #             mmproj-F16.gguf, 0.9 GB               vision, baseline and azllm
@@ -10,6 +10,7 @@
 #             drafters/, mtp-vocab/                 azllm's DFlash2 drafter, 0.8 GB
 #             chat_template_v22.jinja               the fixed chat template of TQ3_4S-v2
 #   prismml/  Ternary-Bonsai-2-27B-Q2_0.gguf, 7.6 GB  Bonsai 2 27B, ternary, upstream llama.cpp
+#   ninfer-bonsai/  bonsai2_27b_vl_mtp_retrained.ninfer, 6.4 GB  Bonsai 2 27B with MTP, JGamboa's NInfer
 set -euo pipefail
 M=${MODELS:-/models}
 HF=https://huggingface.co
@@ -59,4 +60,11 @@ if [ ! -f $M/tqllm/chat_template_v22.jinja ]; then
     $HF/YTan2000/Qwen3.8-27B-TQ3_4S/resolve/a07bc6f260d1a431a38f5332fd8fc512ff7b871f/Qwen3.8-27B-TQ3_4S-v2.gguf \
     $M/tqllm/chat_template_v22.jinja
 fi
+
+# Bonsai 2 27B for NInfer, ternary weights and an MTP layer retrained on Bonsai's outputs. Only
+# JGamboa's fork, engines/ninfer-bonsai, reads it.
+get $HF/jgamboa/Ternary-Bonsai-2-27B-NInfer-4090/resolve/e7409cbcea42d4085a91da94b8787cd933be870b/bonsai2_27b_vl_mtp_retrained.ninfer \
+    ninfer-bonsai/bonsai2_27b_vl_mtp_retrained.ninfer \
+    4541bf80637933068b1dc5526be87dbb5d77f6eb3cb3bb1ca07356bc4daf6468
+
 echo "== models ready in $M"

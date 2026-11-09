@@ -117,6 +117,13 @@ Three more serve the voice of [StepIt Speech](https://github.com/kineticsystem/s
 | `stepit-macro` | llama.cpp (TurboQuant fork), Qwen3.8-27B UD-Q4_K_XL | 18.4 GB | The same, with Qwen3.8-27B: as accurate, 10 GB more. |
 | `azllm-voice` | azllm, Qwen3.8-27B TQ_L, `--free 4864` | 17.7 GB | Kept for comparison: azllm ignores JSON schemas and `tool_choice: required`. |
 
+Two more serve Bonsai 2 27B fast, for [MasterOfPuppets](../minecraft/masterofpuppets/docs/BONSAI.md). They run on `engines/ninfer-bonsai`, JGamboa's NInfer, which reads ternary weights, with an MTP layer retrained on Bonsai's outputs. NInfer refuses JSON schemas, so a client validates each answer itself:
+
+| Model | Context | GPU | Speed |
+|---|---:|---:|---|
+| `bonsai-ninfer` | 254K | 11.7 GB | MTP 3 and n-gram drafts: 209 tok/s on prose, 350 on code, 687 on edits |
+| `bonsai-ninfer-mtp` | 254K | 11.7 GB | MTP 3 alone: 203 tok/s on prose, 310 on code, 352 on edits |
+
 `engines/llama-cpp-upstream` is a second upstream llama.cpp, recent enough for Bonsai's Q2_0 (b11555 or newer); `engines/llama.cpp` stays at the commit OpenJet was measured with. [`scripts/serve/bonsai.sh`](scripts/serve/bonsai.sh) runs it with the sampling of Bonsai's model card. `azllm.sh` and `baseline.sh` take `--` and then options for their server, which override theirs, e.g. `--chat-template-kwargs '{"enable_thinking":false}'`; `azllm.sh` also takes `--free MB`, the GPU memory azllm leaves free, 2048 by default.
 
 ### opencode
