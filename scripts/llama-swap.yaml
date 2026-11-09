@@ -14,8 +14,9 @@ logToStdout: both
 # While a model loads, tell the client in the reasoning field: opencode shows the load
 # instead of an answer that seems stuck.
 sendLoadingState: true
-# Unload a model after 30 idle minutes, to free the GPU.
-globalTTL: 1800
+# Never unload a model when idle: the last one asked for stays loaded, so the next request
+# does not wait for a load. Another model replaces it.
+globalTTL: 0
 # A server can take a few seconds to free 22 GB of GPU memory.
 unloadTimeout: 30
 startPort: 5800
@@ -27,36 +28,18 @@ macros:
 models:
   azllm:
     name: "azllm, 148K, vision (fastest)"
-    cmd: ${serve}/azllm.sh --port ${PORT}
+    cmd: ${serve}/azllm.sh --port ${PORT} -- -ub 512
     useModelName: Qwen3.8-27B
     metadata: {context: 151552, output: 16384}
-
-  azllm-text:
-    name: "azllm, 148K, text only (for programs that send no images)"
-    cmd: ${serve}/azllm.sh --no-vision --port ${PORT}
-    useModelName: Qwen3.8-27B
-    metadata: {context: 151552, output: 16384}
-
-  azllm-voice:
-    name: "azllm, 8K, text only (for speech-to-speech, which needs the GPU for its voice)"
-    cmd: ${serve}/azllm.sh --no-vision --ctx 8192 --free 4864 --port ${PORT} -- -ub 512 --gemm-rows 2048
-    useModelName: Qwen3.8-27B
-    metadata: {context: 8192, output: 4096}
 
   azllm-228k:
     name: "azllm, 228K, vision, 4-bit KV"
-    cmd: ${serve}/azllm.sh --kv q4/q4 --ctx 233472 --port ${PORT}
+    cmd: ${serve}/azllm.sh --kv q4/q4 --ctx 233472 --port ${PORT} -- -ub 512 --gemm-rows 2048
     useModelName: Qwen3.8-27B
     metadata: {context: 233472, output: 16384}
 
-  stepit-macro:
-    name: "StepIt Macro voice: Qwen3.8-27B on llama.cpp, 8K, text only, no thinking (it enforces JSON schemas, which the voice bridge needs)"
-    cmd: ${serve}/baseline.sh --no-vision --ctx 8192 --port ${PORT} -- --chat-template-kwargs '{"enable_thinking":false}'
-    useModelName: Qwen3.8-27B
-    metadata: {context: 8192, output: 4096}
-
-  stepit-macro-bonsai:
-    name: "StepIt Macro voice: Bonsai 2 27B, ternary, llama.cpp, 8K, no thinking (7.6 GB)"
+  bonsai-llamacpp:
+    name: "Bonsai 2 27B, ternary, llama.cpp, 8K, no thinking, enforces JSON schemas"
     cmd: ${serve}/bonsai.sh --ctx 8192 --port ${PORT} -- --chat-template-kwargs '{"enable_thinking":false}'
     useModelName: Ternary-Bonsai-2-27B
     metadata: {context: 8192, output: 4096}

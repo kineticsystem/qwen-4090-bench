@@ -7,7 +7,7 @@
 #   --ctx      context (default 151552, the most q8/q4 fits with vision and 2 GB left free;
 #              with q4/q4, 233472)
 #   --free     MB of the GPU to keep free after loading (default 2048), e.g. 6144 to leave
-#              room for the voice models of speech-to-speech
+#              room for another program on the GPU
 #   --         the rest goes to tqserve as it is, e.g. -ub 512 --gemm-rows 2048, which a
 #              small --free needs: -fitl off refuses to shrink them by itself
 set -euo pipefail

@@ -19,7 +19,7 @@ services:
     hostname: qwen-4090-bench
     init: true
     # llama-swap starts with the computer once dock.sh start has been run. It loads no
-    # model until a request asks for one, and unloads a model after 30 idle minutes.
+    # model until a request asks for one, and keeps the last one loaded until another is asked for.
     restart: unless-stopped
     # One RTX 4090.
     gpus: all
